@@ -4,7 +4,7 @@ Author: Ruixing Liang (rliang7@jh.edu) Hongchao Shu (hshu4@jhu.edu)
 
 ## Introduction
 
-This is Repo tailored for accurate Synchronization between simulation in Virtual Reality (VR) and Real world, which is tracked by optical tracker using Atracsys fusionTrack 500 and Microscope (Haag-Streit Allegra 500). This repo is initallized for Computer Integrated Surgery II in Johns Hopkins University Robotics Course will further optimized and incorporated in MICCAI submission open source repo subsequently please follow and star for tracking the status. This could also be seen as a pre-release of AMBF plugin for optical tracker extensions. 
+This is Repo tailored for accurate Synchronization between simulation in Virtual Reality (VR) and Real world, which is tracked by optical tracker using Atracsys fusionTrack 500 and Microscope (Haag-Streit Allegra 500). This repo is initallized for Computer Integrated Surgery II in Johns Hopkins University Robotics Course will further optimized and incorporated in MICCAI submission open source repo subsequently. Please follow and star for tracking the status. This could also be seen as a pre-release of AMBF plugin for optical tracker extensions. 
 
 ![](./Resources/Readme_1.png)
 
