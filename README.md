@@ -52,7 +52,7 @@ cmake ..
 make
 ```
 
-2. Set up the Communication between ROS nodes in .bashrc
+2. Set up the Communication between ROS nodes in .bashrc  
 
 
 
