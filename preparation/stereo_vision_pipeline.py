@@ -1,15 +1,15 @@
-# Detecting chessboard in the data
 # Johns Hopkins University
-# Date: Apr 09, 2022
 
 from __future__ import print_function
 import os
+import sys
+sys.path.append('.')
 import re
 import cv2
 import shutil
 import numpy as np
-from Solver import solver
-from dataLoader import dataLoader
+from util.Solver import solver
+from util.dataLoader import dataLoader
 from natsort import natsorted
 from rectifyStereo import rectifyStereo
 from calibrate_stereo_chess import stereoCalibration
@@ -287,8 +287,8 @@ def getHandEyeAB(calib_dir, robot_poses, marker_poses):
         camera_to_marker[:, :, i] = marker_poses[pose_inds[i]]
         base_to_hand[:, :, i] = robot_poses[pose_inds[i]]
 
-    np.save(f'{calib_dir}/A_cam2marker', camera_to_marker)
-    np.save(f'{calib_dir}/B_base2hand', base_to_hand)
+    np.save(f'./data/hand-eye_calibration_data/{calib_dir}/A_cam2marker', camera_to_marker)
+    np.save(f'./data/hand-eye_calibration_data/{calib_dir}/B_base2hand', base_to_hand)
 
 
 def axxb(calib_dir, robot_poses, marker_poses):
@@ -333,8 +333,8 @@ def axxb(calib_dir, robot_poses, marker_poses):
     # don`t forget the last pose
     camera_to_marker[:, :, n-1] = marker_poses[pose_inds[n-1]]
     base_to_hand[:, :, n-1] = robot_poses[pose_inds[n-1]]
-    np.save(f'{calib_dir}/A_cam2marker', camera_to_marker)
-    np.save(f'{calib_dir}/B_base2hand', base_to_hand)
+    np.save(f'./data/hand-eye_calibration_data/{calib_dir}/A_cam2marker', camera_to_marker)
+    np.save(f'./data/hand-eye_calibration_data/{calib_dir}/B_base2hand', base_to_hand)
     print('nan_num:', nan_num)
 
     # Get the rotation matrix
@@ -373,62 +373,6 @@ def Q_intrinsic(intrinsic_params_dir):
     # print('baseLine', bl)
     return new_intrinsic
 
-def verifyAxxB(idx):
-
-    def getPanel(dirPath):
-        fileNum = 0
-        p_list = []
-        for lst in os.listdir(dirPath):
-            sub_path = os.path.join(dirPath, lst)
-            # print(sub_path)
-            if lst == 'hmd':
-                for name in os.listdir(sub_path):
-                    name = os.path.join(os.path.abspath(sub_path), name)
-                    data = ld.loadJson(name)
-                    p_list.append(data)
-                    fileNum = fileNum + 1
-                p_list = np.vstack(p_list)
-        # print('point num:', fileNum)
-        return p_list
-
-    # get pan to phacon
-    pan = getPanel('../run_2.21_281_points_cloud')
-    pan = np.mean(pan, 0)
-    _, Trac2Pan_Reg = sol.seven2trans(pan)
-    phacon2Trac_reg = np.load('../Phacon2Op_2.21.npy')
-    phacon2Pan = phacon2Trac_reg @ Trac2Pan_Reg
-    Pan2phacon = sol.invTransformation(phacon2Pan)
-    # np.save('../Pan2phacon.npy', Pan2phacon)
-
-    Trac2Camhand = ld.getRealPose(idx, '../GT_CSV_2.21/fwd_pose_camhand.csv')
-    _, Trac2Camhand = sol.seven2trans(Trac2Camhand)
-    Trac2Pan = ld.getRealPose(idx, '../GT_CSV_2.21/fwd_pose_pan.csv')
-    _, Trac2Pan = sol.seven2trans(Trac2Pan)
-
-    Trac2phacon = Trac2Pan@Pan2phacon
-    phacon2Cam = np.load(f'verify_axxb_phacon2Cam/{idx}.npy')
-    Camhand2Trac = sol.invTransformation(Trac2Camhand)
-    inference_X = Camhand2Trac@Trac2phacon@phacon2Cam
-    print('dis infer_X L2:', np.linalg.norm(inference_X[:3, 3]))
-
-    X = np.load('hand_eye_X_37.npy')
-    c2ph = sol.invTransformation(X)@Camhand2Trac@Trac2phacon
-    dis_cam2Phacon_use_X = np.linalg.norm(c2ph[:3, 3])
-    print('dis X L2:', np.linalg.norm(X[:3, 3]))
-    print('F_inference(phacon2Cam)@ invF:\n', phacon2Cam@c2ph)
-    np.save('infer_X', inference_X)
-    return inference_X
-
-def saveMat_intrinsic(intrin_dir):
-    from scipy.io import loadmat
-    save_path = f'{intrin_dir}'
-    np.save(f'{save_path}/M_l', loadmat(f'{save_path}/M_l.mat')['M_l'])
-    np.save(f'{save_path}/M_r', loadmat(f'{save_path}/M_r.mat')['M_r'])
-    np.save(f'{save_path}/d_l', loadmat(f'{save_path}/d_l.mat')['d_l'])
-    np.save(f'{save_path}/d_r', loadmat(f'{save_path}/d_r.mat')['d_r'])
-    np.save(f'{save_path}/R', loadmat(f'{save_path}/R.mat')['R'])
-    np.save(f'{save_path}/T', loadmat(f'{save_path}/T.mat')['T'])
-
 def main(interval, calib_dir, intrinsic_dir, handeyeMode, charuco=False):
 
     ori_dir = [f'{calib_dir}/limg', f'{calib_dir}/rimg']
@@ -449,7 +393,7 @@ def main(interval, calib_dir, intrinsic_dir, handeyeMode, charuco=False):
     cam_dist = np.zeros([5])
     marker_poses, imgpts_list = getChessPoses(data_dir, cam_mtx, cam_dist, charuco)
     # save right up points on chessboard
-    np.save(f'{calib_dir}/imgpts_list', imgpts_list)
+    np.save(f'./data/hand-eye_calibration_data/{calib_dir}/imgpts_list', imgpts_list)
 
     # file_list = os.listdir(data_dir)
     # file_list = natsorted(file_list)
@@ -501,7 +445,7 @@ def main(interval, calib_dir, intrinsic_dir, handeyeMode, charuco=False):
     elif handeyeMode == 2:
         # using traditional hand-eye calibration
         X = axxb(calib_dir, robot_poses, marker_poses)
-    np.save(f'{calib_dir}/hand_eye_X_axxb', X)
+    np.save(f'./data/hand-eye_calibration_data/{calib_dir}/hand_eye_X_axxb', X)
     # X = np.load(f'{calib_dir}/hand_eye_X_axxb.npy')
     print('translation:', np.linalg.norm(X[:3, 3]))
 
@@ -509,8 +453,8 @@ if __name__ == '__main__':
     ld = dataLoader()
 
     # # directory of calibration images and target path
-    calib_dir = 'Charuco_handeye_425'
-    intrinsic_dir = 'intrinsic_params_421'
+    calib_dir = './data/hand-eye_calibration_data/Charuco_Calib_419'
+    intrinsic_dir = './params'
     main(1, calib_dir, intrinsic_dir, handeyeMode=1, charuco=True)
 
     # A = np.load(f'{calib_dir}/A_cam2marker.npy')
@@ -518,4 +462,4 @@ if __name__ == '__main__':
     # # A = A[:, :, :15]
     # # B = B[:, :, :15]
     # X = handeye_calib_dq.hand_eye_calibration(A, B)
-    # np.save(f'{calib_dir}/hand_eye_X_axxb', X)
+    # np.save(f'./data/hand-eye_calibration_data/{calib_dir}/hand_eye_X_axxb', X)

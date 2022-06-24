@@ -1,12 +1,13 @@
 import shutil
-
+import sys
+sys.path.append('.')
 import numpy as np
-from dataLoader import dataLoader
-from Solver import solver
+from util.dataLoader import dataLoader
+from util.Solver import solver
 import os
 from natsort import natsorted
 import cv2
-from stereo_vision_pipeline import getChessPoses, Q_intrinsic, draw, draw_full, chessboard_pose
+from preparation.stereo_vision_pipeline import getChessPoses, Q_intrinsic, draw, draw_full, chessboard_pose
 ld = dataLoader()
 sol = solver()
 

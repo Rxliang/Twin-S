@@ -1,10 +1,13 @@
 ## Using sksurgery pivot calibraiton
+import sys
+import os
+sys.path.append('.')
 import numpy as np
 import random
 from scipy.optimize import least_squares
-from dataLoader import dataLoader
+from util.dataLoader import dataLoader
 import pandas as pd
-from Solver import solver
+from util.Solver import solver
 sol = solver()
 ld = dataLoader()
 
@@ -344,7 +347,8 @@ def _replace_small_values(the_list, threshold=0.01, replacement_value=0.0):
 
 if __name__ == '__main__':
     ld = dataLoader()
-    csv_data = pd.read_csv('../Drill_426_0/fwd_pose_drill.csv')
+    pose_path = 'data/pivot_calibration_data/Pivot_510/fwd_pose_drill.csv'
+    csv_data = pd.read_csv(pose_path)
     # print(csv_data.head())
     num_frames = len(csv_data)
     tracking_matrices = np.zeros([num_frames, 4, 4])
