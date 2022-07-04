@@ -4,7 +4,7 @@ import numpy as np
 import rosbag
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseStamped
-import h5py
+# import h5py
 import time
 import logging
 import argparse
@@ -92,7 +92,7 @@ def bag2rawHDF5(args):
     # print(end_time)
     print(info_dict)
     size = info_dict["topics"][0]['messages']
-    print "Number of Messages: ",size
+    print("Number of Messages: ",size)
     # limg_dst = file.create_dataset('Pose_Panel',(size,1080,1920,3),dtype = "float64" ,chunks = True)
     # rimg_np = np.empty([size,1080,1920,3])
     # rimg_np = np.memmap('hard_disk_rimg', dtype=np.float64, mode='w+',shape=(size,1080,1920,3))
@@ -134,7 +134,7 @@ def bag2rawHDF5(args):
         print(count)
 
     end = time.time()
-    print end - start
+    print(end - start)
     print("Complete Saving")
     return img_sec_list_l, img_sec_list_r
     # print(len(sec_list))
