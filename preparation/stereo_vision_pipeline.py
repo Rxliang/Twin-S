@@ -3,7 +3,7 @@
 from __future__ import print_function
 import os
 import sys
-sys.path.append('.')
+sys.path.append('../')
 import re
 import cv2
 import shutil
@@ -33,10 +33,6 @@ def draw(img, imgpts, color='org'):
         print('draw!')
     elif color == 'b':
         c = [255, 144, 30]
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]), c, 3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]), c, 3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]), c, 3)
-    elif color == 'org':
         cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]),[0,0,255],3)  #BGR
         cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]),[0,255,0],3)
         cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]),[255,0,0],3)
@@ -229,13 +225,13 @@ def Charuco_pose(img_dir, img_filename, cam_mtx, cam_dist, width, pattern):
         return None, None, None
 
 
-def getChessPoses(data_dir, cam_mtx, cam_dist, charuco):
-    if not charuco:
-        pattern = (7, 10)
-        width = 2
-    else:
-        pattern = (10, 7)
-        width = 3
+def getChessPoses(data_dir, cam_mtx, cam_dist, charuco, pattern=(7, 10), width=2):
+    # if not charuco:
+    #     pattern = (7, 10)
+    #     width = 2
+    # else:
+    #     pattern = (10, 7)
+    #     width = 3
 
     objp = np.zeros((pattern[0] * pattern[1], 3), np.float32)
     

@@ -65,7 +65,7 @@ def limg_callback(msg):
         limg_msg = msg
 
 def limg_listener():
-    rospy.Subscriber(u"/fwd_limage/compressed", PoseStamped, limg_callback)
+    rospy.Subscriber(u"/zedm/zed_node/left/image_rect_color/compressed", CompressedImage, limg_callback)
     rospy.spin()
 
 def rimg_callback(msg):
@@ -75,7 +75,7 @@ def rimg_callback(msg):
         rimg_msg = msg
 
 def rimg_listener():
-    rospy.Subscriber(u"/fwd_rimage/compressed", PoseStamped, rimg_callback)
+    rospy.Subscriber(u"/zedm/zed_node/right/image_rect_color/compressed", CompressedImage, rimg_callback)
     rospy.spin()
 
 
@@ -111,7 +111,7 @@ def save_all_ros_msg():
     with limg_lock: 
         save_ros_msg_as_img(limg_msg, os.path.join(run_save_path, "limg"+str(img_save_counter)+".png"))
 
-    print u"Saved capture ", img_save_counter
+    print("Saved capture ", img_save_counter)
     img_save_counter += 1
 
 ##############################################################################
@@ -137,7 +137,7 @@ def handle_mouse(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         global img_save_counter
         img_save_counter = max( img_save_counter - 1, 0)
-        print u"Next capture will overwrite capture", img_save_counter
+        print("Next capture will overwrite capture", img_save_counter)
 
     if event == cv2.EVENT_RBUTTONDOWN:
         save_all_ros_msg()
@@ -181,7 +181,7 @@ if __name__ == u'__main__':
             save_all_ros_msg()
         elif key == ord(u','):
             img_save_counter = max( img_save_counter - 1, 0)
-            print u"Next capture will overwrite capture", img_save_counter
+            print("Next capture will overwrite capture", img_save_counter)
         elif key == ord(u'.'):
             img_save_counter += 1
-            print u"Next capture will overwrite capture", img_save_counter
+            print("Next capture will overwrite capture", img_save_counter)

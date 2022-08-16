@@ -1,27 +1,16 @@
-import cv2
-from cv_bridge import CvBridge
-import numpy as np
+from glob import glob
 import rosbag
-from sensor_msgs.msg import CompressedImage
-from geometry_msgs.msg import PoseStamped
-# import h5py
-import time
-import logging
-import argparse
+import rospy
+import cv2
+import numpy as np
 import os
-# import bagpy
-# import matplotlib.pyplot as plt
-import yaml
 import time
+import argparse
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
 from PIL import Image
-# import ros_numpy
-# from tqdm import tqdm
-# output_dir = "./Data"
-input_dir = "./"
-IMG_W = 640
-IMG_H = 180
-DATA_NUM = 3000
 bridge = CvBridge()
+
 
 def verify_cv_bridge():
     arr = np.zeros([480, 640])
@@ -29,131 +18,127 @@ def verify_cv_bridge():
     try:
         bridge.imgmsg_to_cv2(msg)
     except ImportError:
-        log.log(logging.WARNING, "libcv_bridge.so: cannot open shared object file. Please source ros env first.")
+        # log.log(logging.WARNING, "libcv_bridge.so: cannot open shared object file. Please source ros env first.")
         return False
 
     return True
 
-def verify_ROS_connection():
-    os.system("ping -c 4 10.42.0.27")
-#     os.system("ssh 10.42.0.27")
-    #Under Construction
-    #if 
-    #Return True
-
 def initialization():
     global file , args
     
-    parser = argparse.ArgumentParser(description="Extract images/steering angle/speed from a time-synchronized rosbag to a PyTable hdf5 file.")
+    parser = argparse.ArgumentParser(description="Extract images from rosbag.")
     # parser.add_argument("img_dir", help="Input image directory", default='./test.bag', type=str)
-    parser.add_argument("bag_file", help="Input ROS bag directory", default='./test.bag', type=str)
-    parser.add_argument("output_dir", help="Output directory.", default='./Data', type=str)
+    parser.add_argument('--bag',dest="bag_file", help="Input ROS bag directory", default='./test.bag', type=str)
+    parser.add_argument('--outdir',dest="output_dir", help="Output directory.", default='./Data', type=str)
+    parser.add_argument('--stereo',dest="stereo", help="Stereo or monocular.", type=bool)
+    parser.add_argument('--topic',dest="img_topic", help="Topic of image.", default='/camera/color/image_raw/compressed', type=str)
+    parser.add_argument('--l_topic',dest="l_img_topic", help="Topic of left image.", default='/zedm/zed_node/left/image_rect_color/compressed', type=str)
+    parser.add_argument('--r_topic',dest="r_img_topic", help="Topic of right image.", default='/zedm/zed_node/right/image_rect_color/compressed', type=str)
+    
     args = parser.parse_args()
     valid = verify_cv_bridge()
     # verify_ROS_connection()
     limg_path = args.output_dir +'/limg/'
     rimg_path = args.output_dir +'/rimg/'
+    img_path = args.output_dir +'/img/'
     if valid:
         if not os.path.exists(args.output_dir):
-            os.makedirs(args.output_dir)
-            print("Create Folder at Designated Address...")
-        if not os.path.exists(limg_path):
-            os.makedirs(limg_path)
-            print("Create Folder at Designated Address limg...")
-        if not os.path.exists(rimg_path):
-            os.makedirs(rimg_path)
-            print("Create Folder at Designated Address rimg...")
-        time_str = time.strftime("%Y%m%d_%H%M%S")
-        # file = h5py.File(args.output_dir + '/' + time_str + ".hdf5", "w")
-        
+                os.makedirs(args.output_dir)
+                print("Create Folder at Designated Address...")
+        if args.stereo:
+            if not os.path.exists(limg_path):
+                os.makedirs(limg_path)
+                print("Create Folder at Designated Address limg...")
+            if not os.path.exists(rimg_path):
+                os.makedirs(rimg_path)
+                print("Create Folder at Designated Address rimg...")
+            time_str = time.strftime("%Y%m%d_%H%M%S")
+            # file = h5py.File(args.output_dir + '/' + time_str + ".hdf5", "w")
+        else:
+            if not os.path.exists(img_path):
+                os.makedirs(img_path)
+                print("Create Folder at Designated Address img...")
         #Under Construction
     else:
         print("Failed")
 
-def bag2rawHDF5(args):
-    global file
-    sec_list = []
-    nsec_list = []
-    limg_list =[]
-    rimg_list = []
-    pose_pan = []
-    pose_drill = []
-
-    bag = rosbag.Bag(args.bag_file, "r")
-    # limage = bag.message_by_topic('/fwd_limage/compressed')
-    # print(limage.header.stamp.secs)
-
-    #Read to Initialize the size for hdf5
-    info_dict = yaml.load(bag._get_yaml_info())
-    # duration = info_dict['duration']
-    # start_time = info_dict['start']
-    # end_time = info_dict['end']
-    # print(start_time,duration)
-    # print(end_time)
-    print(info_dict)
-    topic_info = info_dict["topics"]
-    topics_list = []
-    topics_img_list = []
-    for topic in topic_info:
-        topic_name = topic['topic']
-        topics_list.append(topic_name)
-        if topic_name.endswith('compressed'):
-            topics_img_list.append(topic_name)
-
-    print "EXTRACTED IMAGE TOPIC" ,topics_img_list
-    # print "Number of Messages: ",size
-    # limg_dst = file.create_dataset('Pose_Panel',(size,1080,1920,3),dtype = "float64" ,chunks = True)
-    # rimg_np = np.empty([size,1080,1920,3])
-    # rimg_np = np.memmap('hard_disk_rimg', dtype=np.float64, mode='w+',shape=(size,1080,1920,3))
-    # print limg_dst.dtype
-    
+def bag2images(args):
+    bridge = CvBridge()
+    count = 0
     start = time.time()
-    img_sec_list_r, img_sec_list_l = [], []
-    flag = 0
-    for topic in topics_img_list:
-        count= 0
-        for topic, msg, t in bag.read_messages(topics = topic):
-            img_sec = msg.header.stamp.nsecs
-            if flag ==0:
+    img_sec_list_l, img_sec_list= [], []
+    with rosbag.Bag(args.bag_file, 'r') as bag:
+        if args.stereo:
+            start = time.time()
+            for topic, msg, t in bag.read_messages(topics = args.l_img_topic):
+                img_sec = msg.header.stamp.to_sec()
                 img_sec_list_l.append(img_sec)
-                tar_folder = "limg/"
-            else:
-                img_sec_list_r.append(img_sec)
-                tar_folder = "rimg/"
-            cv_img = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
-            # rimg_np[count] = cv_img #Under Construction
-            file_path = args.output_dir + "/" +  tar_folder + str(count) + '.jpeg'
-            pil_image = Image.fromarray(cv_img)
-            pil_image.save(file_path)
-            count+=1
-            print(count)
-        flag+=1
 
-    end = time.time()
-    print end - start
-    print("Complete Saving")
-    return img_sec_list_l, img_sec_list_   
+                try:
+                    cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
+                except CvBridgeError as e:
+                    print(e)
+                image_path = args.output_dir +'/limg/' + str(count) + '.jpeg'
+                pil_image = Image.fromarray(cv_image[:,:,::-1])
+                pil_image.save(image_path)
+                count += 1
+                print(count)
 
-    
-def test_memmap():
-    rimg_np = np.memmap('hard_disk_rimg', dtype=np.float64, mode='w+',shape=(1080,1920,3))
-    rimg_np =  np.zeros([1080,1920,3])
-    np.save("test.npy",rimg_np)
+            count = 0
+            for topic, msg, t in bag.read_messages(topics = args.r_img_topic):
+                img_sec = msg.header.stamp.to_sec()
+                img_sec_list_l.append(img_sec)
 
-def test_sync(l_ref,r_test):
-     l_ref, r_test = np.asarray(l_ref), np.asarray(r_test)
-     np.save("l_ref",l_ref)
-     np.save("r_test",r_test)
-     print(l_ref[-1]-l_ref[0])
-     print(l_ref[-1],r_test[-1])
-     print(r_test[-1]-r_test[0])
+                try:
+                    cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
+                except CvBridgeError as e:
+                    print(e)
+                image_path = args.output_dir +'/rimg/' + str(count) + '.jpeg'
+                pil_image = Image.fromarray(cv_image[:,:,::-1])
+                pil_image.save(image_path)
+                count += 1
+                print(count)
+
+            end = time.time()
+            print(end - start)
+            print("Complete Saving")
+            return img_sec_list_l
+
+        else:
+            for topic, msg, t in bag.read_messages(topics = args.img_topic):
+                img_sec = msg.header.stamp.nsecs
+                img_sec_list.append(img_sec)
+
+                try:
+                    cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
+                except CvBridgeError as e:
+                    print(e)
+                image_path = args.output_dir +'/img/' + str(count) + '.jpeg'
+                pil_image = Image.fromarray(cv_image[:,:,::-1])
+                pil_image.save(image_path)
+                count += 1
+                print(count)
+
+            end = time.time()
+            print(end - start)
+            print("Complete Saving")
+            return img_sec_list
 
 def main():
     global args
-    
     initialization()
-    l,r = bag2rawHDF5(args)
-    # test_sync(l,r)
-    # test_memmap()
-if __name__ =="__main__":
+    img_sec_list = bag2images(args)
+    # np.save('time_stamp',img_sec_list)
+
+    # data_dir = args.output_dir +'/img/'
+    # cam_mtx = np.zeros((4,4))
+    # cam_dist = np.zeros([5])
+
+    # marker_poses, imgpts_list = sp.getChessPoses(data_dir, cam_mtx, cam_dist, charuco=False, pattern=(6,8), width=20)
+
+
+
+
+if __name__ == '__main__':
     main()
+    # print(len(time_stamp))
