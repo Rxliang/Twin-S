@@ -7,8 +7,8 @@ import copy
 import numpy as np
 # import tf
 
-from dq_calibration.dual_quaternion import DualQuaternion
-from dq_calibration.quaternion import Quaternion
+from preparation.dq_calibration.dual_quaternion import DualQuaternion
+from preparation.dq_calibration.quaternion import Quaternion
 
 
 class Arrow3D(FancyArrowPatch):

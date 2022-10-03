@@ -3,13 +3,13 @@
 import math
 import numpy as np
 
-from dq_calibration.dual_quaternion_hand_eye_calibration import (
+from preparation.dq_calibration.dual_quaternion_hand_eye_calibration import (
     evaluate_alignment, align_paths_at_index, get_aligned_poses, compute_pose_error)
-from dq_calibration.time_alignment import compute_aligned_poses
-from dq_calibration.dual_quaternion import DualQuaternion
-from dq_calibration.quaternion import Quaternion
-from dq_calibration.dual_quaternion_hand_eye_calibration import HandEyeConfig
-from dq_calibration.hand_eye_calibration_plotting_tools import (
+from preparation.dq_calibration.time_alignment import compute_aligned_poses
+from preparation.dq_calibration.dual_quaternion import DualQuaternion
+from preparation.dq_calibration.quaternion import Quaternion
+from preparation.dq_calibration.dual_quaternion_hand_eye_calibration import HandEyeConfig
+from preparation.dq_calibration.hand_eye_calibration_plotting_tools import (
     plot_poses)
 
 

@@ -1,10 +1,10 @@
 
-from dq_calibration.dual_quaternion_hand_eye_calibration import compute_hand_eye_calibration_RANSAC, compute_hand_eye_calibration_BASELINE
-from dq_calibration.dual_quaternion import DualQuaternion
+from preparation.dq_calibration.dual_quaternion_hand_eye_calibration import compute_hand_eye_calibration_RANSAC, compute_hand_eye_calibration_BASELINE
+from preparation.dq_calibration.dual_quaternion import DualQuaternion
 import numpy as np
-from dq_calibration.algorithm_config import get_exhaustive_search_scalar_part_inliers_config, get_baseline_config, \
+from preparation.dq_calibration.algorithm_config import get_exhaustive_search_scalar_part_inliers_config, get_baseline_config, \
     get_exhaustive_search_pose_inliers_config, get_RANSAC_classic_config, get_RANSAC_scalar_part_inliers_config
-from dq_calibration.calibration_verification import evaluate_calibration
+from preparation.dq_calibration.calibration_verification import evaluate_calibration
 class HandEyeConfig:
 
   def __init__(self):

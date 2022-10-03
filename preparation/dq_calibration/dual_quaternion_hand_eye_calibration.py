@@ -14,10 +14,10 @@ import sys
 # import tf
 import timeit
 
-from dq_calibration.dual_quaternion import DualQuaternion
-from dq_calibration.quaternion import (
+from preparation.dq_calibration.dual_quaternion import DualQuaternion
+from preparation.dq_calibration.quaternion import (
     Quaternion, angle_between_quaternions)
-from dq_calibration.hand_eye_calibration_plotting_tools import (
+from preparation.dq_calibration.hand_eye_calibration_plotting_tools import (
     plot_alignment_errors, plot_poses)
 
 # This implements the following paper.

@@ -1,6 +1,6 @@
 
-from dq_calibration.dual_quaternion_hand_eye_calibration import HandEyeConfig
-from dq_calibration.time_alignment import FilteringConfig
+from preparation.dq_calibration.dual_quaternion_hand_eye_calibration import HandEyeConfig
+from preparation.dq_calibration.time_alignment import FilteringConfig
 
 
 def get_basic_config():

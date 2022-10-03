@@ -11,35 +11,35 @@ import numpy as np
 from util.Solver import solver
 from util.dataLoader import dataLoader
 from natsort import natsorted
-from rectifyStereo import rectifyStereo
-from calibrate_stereo_chess import stereoCalibration
+from preparation.rectifyStereo import rectifyStereo
+from preparation.calibrate_stereo_chess import stereoCalibration
 import sys
 from cv2 import aruco
-from dq_calibration import handeye_calib_dq
+from preparation.dq_calibration import handeye_calib_dq
 import matplotlib as plt
 sol = solver()
 
 
-def draw(img, imgpts, color='org'):
+def draw(img, imgpts, color='org', lineLength = 5):
     """
     Draw the detction result (axis & origin of teh chessboard) on the image
     """
 
     if color == 'p':
         c = [240, 32, 160]
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]), c, 3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]), c, 3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]), c, 3)
+        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]), c, lineLength)
+        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]), c, lineLength)
+        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]), c, lineLength)
         print('draw!')
-    elif color == 'b':
+    elif color == 'org':
         c = [255, 144, 30]
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]),[0,0,255],3)  #BGR
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]),[0,255,0],3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]),[255,0,0],3)
+        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]),[0,0,255],lineLength)  #BGR
+        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]),[0,255,0],lineLength)
+        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]),[255,0,0],lineLength)
     return img
 
 
-def draw_full(img, imgpts, pattern_size, color):
+def draw_full(img, imgpts, pattern_size, color, block_width=15):
     """
     Draw full checkerboard on the image
     """
@@ -47,13 +47,13 @@ def draw_full(img, imgpts, pattern_size, color):
         c = [240, 32, 160]
     elif color == 'b':
         c = [255, 144, 30]
-    for j in range(pattern_size[0]):
-        for k in range(pattern_size[1]):
-            if k+1 < pattern_size[1]:
-                cv2.line(img, tuple(imgpts[pattern_size[1]*j + k]), tuple(imgpts[pattern_size[1]*j + k+1]), c, 2)
-                if j + 1 < pattern_size[0]:
-                    cv2.line(img, tuple(imgpts[pattern_size[1] * j + k]), tuple(imgpts[pattern_size[1] * (j+1) + k]), c,2)
-    cv2.line(img, tuple(imgpts[pattern_size[1]-1]), tuple(imgpts[-1]), c, 2)
+    for col in range(pattern_size[1]):
+        for row in range(pattern_size[0]-1):
+            cv2.line(img, tuple(imgpts[col*pattern_size[0]+row]), tuple(imgpts[col*pattern_size[0]+row+1]), c, 2)
+    
+    for row in range(pattern_size[0]):
+        for col in range(pattern_size[1]-1):
+            cv2.line(img, tuple(imgpts[col*pattern_size[0]+row]), tuple(imgpts[(col+1)*pattern_size[0]+row]), c, 2)
 
     # for j in range(pattern_size[0]):
     #     for k in range(pattern_size[1]):
