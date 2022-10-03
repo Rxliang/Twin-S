@@ -11,4 +11,4 @@ def bag2csv(file_path, axxb):
 
 if __name__ == '__main__':
 
-    bag2csv('F:\AXXB_Good_small_motion_419.bag', axxb=True)
+    bag2csv('~/shc/Desktop/data/915/pivot.bag', axxb=True)

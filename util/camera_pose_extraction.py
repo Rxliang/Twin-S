@@ -6,6 +6,7 @@ import numpy as np
 import os
 import time
 import argparse
+import pickle
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import matplotlib.pyplot as plt
@@ -38,6 +39,7 @@ def initialization():
     parser.add_argument('--l_topic',dest="l_img_topic", help="Topic of left image.", default='/zedm/zed_node/left/image_rect_color/compressed', type=str)
     # parser.add_argument('--r_topic',dest="r_img_topic", help="Topic of right image.", default='/fwd_rimage/compressed', type=str)
     parser.add_argument('--csv',dest='csv_file_name', required=True, help='Path to output csv file')
+    parser.add_argument('--csv_i',dest='csv_file_name_inv', required=True, help='Path to output inverse csv pose file')
     args = parser.parse_args()
     valid = verify_cv_bridge()
     # verify_ROS_connection()
@@ -65,50 +67,6 @@ def initialization():
     else:
         print("Failed")
 
-def draw(img, imgpts, color='org'):
-    """
-    Draw the detction result (axis & origin of teh chessboard) on the image
-    """
-
-    if color == 'p':
-        c = [240, 32, 160]
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]), c, 3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]), c, 3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]), c, 3)
-        print('draw!')
-    elif color == 'b':
-        c = [255, 144, 30]
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[1]),[0,0,255],3)  #BGR
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[2]),[0,255,0],3)
-        cv2.line(img, tuple(imgpts[0]), tuple(imgpts[3]),[255,0,0],3)
-    return img
-
-
-def draw_full(img, imgpts, pattern_size, color):
-    """
-    Draw full checkerboard on the image
-    """
-    if color == 'p':
-        c = [240, 32, 160]
-    elif color == 'b':
-        c = [255, 144, 30]
-    for j in range(pattern_size[0]):
-        for k in range(pattern_size[1]):
-            if k+1 < pattern_size[1]:
-                cv2.line(img, tuple(imgpts[pattern_size[1]*j + k]), tuple(imgpts[pattern_size[1]*j + k+1]), c, 2)
-                if j + 1 < pattern_size[0]:
-                    cv2.line(img, tuple(imgpts[pattern_size[1] * j + k]), tuple(imgpts[pattern_size[1] * (j+1) + k]), c,2)
-    cv2.line(img, tuple(imgpts[pattern_size[1]-1]), tuple(imgpts[-1]), c, 2)
-
-    # for j in range(pattern_size[0]):
-    #     for k in range(pattern_size[1]):
-    #         if k+1 < pattern_size[1]:
-    #             cv2.line(img, tuple(imgpts[pattern_size[1]*j + k]), tuple(imgpts[pattern_size[1]*j + k+1]), c, 2)
-    #             if j + 1 < pattern_size[0]:
-    #                 cv2.line(img, tuple(imgpts[pattern_size[1] * j + k]), tuple(imgpts[pattern_size[1] * (j+1) + k]), c,2)
-    # cv2.line(img, tuple(imgpts[pattern_size[1]-1]), tuple(imgpts[-1]), c, 2)
-    return img
-
 
 def pose_inv(pose):
     """
@@ -128,21 +86,6 @@ def pose_inv(pose):
     inv_pose = np.r_[inv_pose, [[0, 0, 0, 1]]]
 
     return inv_pose
-
-# def luckyPick(interval, ori_dir, tar_dir):
-
-#     if not os.path.exists(tar_dir):
-#         os.makedirs(tar_dir)
-#     if os.listdir(tar_dir):
-#         shutil.rmtree(tar_dir)
-#         os.makedirs(tar_dir)
-
-#     file_list = os.listdir(ori_dir)
-#     item_list = list(range(0, len(file_list), interval))
-#     for file in item_list:
-#         file_path = str(file) + '.jpeg'
-#         move_item = os.path.join(ori_dir, file_path)
-#         shutil.copy(move_item, tar_dir)
 
 def chessboard_pose(img, timestamp, cam_mtx, cam_dist, objp, width, pattern=(7, 10)):
     """
@@ -177,7 +120,7 @@ def chessboard_pose(img, timestamp, cam_mtx, cam_dist, objp, width, pattern=(7, 
         img = draw(img, imgpts, color='org')
         cv2.imwrite(os.path.join(args.output_dir +'/limg/', timestamp + '_axis.png'), img)
 
-        print("Finish processing: {}".format(timestamp))
+        print("Finish processing: ", timestamp)
 
         return R, tvecs, imgpts[0]
     else:
@@ -239,23 +182,23 @@ def Charuco_pose(img, timestamp, cam_mtx, cam_dist, width, pattern):
     #     aruco.drawAxis(im_with_charuco_board, cam_mtx, cam_dist, rvecs[i], tvecs[i], 0.02 / 2)
     # cv2.imshow('d', im_with_charuco_board)
     # cv2.waitKey(0)
-
+    
     retval, rvecs, tvecs = aruco.estimatePoseCharucoBoard(charucoCorners, charucoIds, CHARUCO_BOARD, cam_mtx,
                                                           cam_dist, None, None) # posture estimation from a charuco board
-    axis = np.float32([[0, 0, 0], [3 * width, 0, 0], [0, 3 * width, 0], [0, 0, 3 * width]]).reshape(-1, 3)
-    imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, cam_mtx, cam_dist)
-    imgpts = np.int32(imgpts).reshape(-1, 2)
-    # print(imgpts)
-    # im_with_charuco_board = draw(im_with_charuco_board, imgpts, color='org')
-    if retval:
-        im_with_charuco_board = aruco.drawAxis(im_with_charuco_board, cam_mtx, cam_dist, rvecs, tvecs, 2*3)
-        cv2.imwrite(os.path.join(args.output_dir +'/limg/', str(timestamp) + '_axis.png'), im_with_charuco_board)
-        print("Finish processing: {}".format(timestamp))
+    if retval:                                                
+        axis = np.float32([[0, 0, 0], [3 * width, 0, 0], [0, 3 * width, 0], [0, 0, 3 * width]]).reshape(-1, 3)
+        imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, cam_mtx, cam_dist)
+        imgpts = np.int32(imgpts).reshape(-1, 2)
+
+    # if retval:
+        im_with_charuco_board = aruco.drawAxis(im_with_charuco_board, cam_mtx, cam_dist, rvecs, tvecs, 12*3)
+        cv2.imwrite(os.path.join(args.output_dir +'/limg/', str(timestamp) + '.png'), im_with_charuco_board)
+        print("Finish processing: ", timestamp)
         R, _ = cv2.Rodrigues(rvecs)
         return R, tvecs, imgpts[0]
     else:
         # os.remove(img_filepath)
-        print("Cannot find charuco in {}".format(timestamp))
+        print("Cannot find charuco in: ", timestamp)
         return None, None, None
 
 
@@ -279,7 +222,6 @@ def getChessPoses(img, timestamp, cam_mtx, cam_dist, charuco, pattern=(7, 10), w
     # file_list = os.listdir(data_dir)
     # file_list = natsorted(file_list)
     poses = []
-    imgpts_list = []
     cam_dist = np.zeros([5])
     # for fname in file_list:
 
@@ -288,43 +230,69 @@ def getChessPoses(img, timestamp, cam_mtx, cam_dist, charuco, pattern=(7, 10), w
     else:
         R, t, imgpts_org = Charuco_pose(img, timestamp, cam_mtx, cam_dist, width, pattern)
     if R is None:
-        return 
+        return
     # print(R, '\n', t)
     # break
-    # imgpts_list.append(imgpts_org)
+
 
     r = Rot.from_matrix(R)
     quat = r.as_quat()
-
-    return t, quat
+    # print('t', t)
+    return t, quat, imgpts_org
 
 
 def extractPose(args, cam_mtx, cam_dist):
     bridge = CvBridge()
     count = 0
     csv_file = open(args.csv_file_name, 'w')
+    inv_csv_file = open(args.csv_file_name_inv, 'w')
 
     start = time.time()
-    img_sec_list_l, img_sec_list= [], []
+    imgpts_dict = {}
     with rosbag.Bag(args.bag_file, 'r') as bag:
         if args.stereo:
             start = time.time()
             for topic, msg, t in bag.read_messages(topics = args.l_img_topic):
-                img_sec = msg.header.stamp.to_sec()
-                img_sec_list_l.append(img_sec)
-
+                img_sec = '{:.5f}'.format(msg.header.stamp.to_sec())
+                
                 try:
                     cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
                 except CvBridgeError as e:
                     print(e)
+                try:
+                    t, quat, imgpts_org = getChessPoses(cv_image, img_sec, cam_mtx, cam_dist, charuco=True, pattern=(10,7), width=15)
+                except:
+                    continue
+                 
+                imgpts_dict[img_sec] = imgpts_org
+                
+                trans = np.identity(4)
+                trans[:3, 3] = t.flatten()
+                r = Rot.from_quat(quat)
+                R = r.as_matrix()
+                trans[:3 ,:3] = R
+                inv_trans = pose_inv(trans)
+                inv_t = inv_trans[:3, 3].reshape([3, 1])
+                inv_R = inv_trans[:3, :3]
+                inv_r = Rot.from_matrix(inv_R)
+                inv_quat = inv_r.as_quat()
 
-                t, quat = getChessPoses(cv_image, img_sec, cam_mtx, cam_dist, charuco=True, pattern=(8,11), width=12)
-                csv_file.write(
+                # save a inverse matrix (C2W)
+                inv_csv_file.write(
                 str(img_sec) + ', ' +
-                str(t[0,0]) + ', ' + str(t[1,0]) + ', ' +
-                str(t[2,0]) + ', ' + str(quat[0]) + ', ' +
+                str(t[0,0]/1000) + ', ' + str(t[1,0]/1000) + ', ' +
+                str(t[2,0]/1000) + ', ' + str(quat[0]) + ', ' +
                 str(quat[1]) + ', ' + str(quat[2]) + ', ' +
                 str(quat[3]) + '\n')
+
+                # save a inverse matrix (W2C)
+
+                csv_file.write(
+                str(img_sec) + ', ' +
+                str(inv_t[0,0]/1000) + ', ' + str(inv_t[1,0]/1000) + ', ' +
+                str(inv_t[2,0]/1000) + ', ' + str(inv_quat[0]) + ', ' +
+                str(inv_quat[1]) + ', ' + str(inv_quat[2]) + ', ' +
+                str(inv_quat[3]) + '\n')
 
                 count += 1
                 print(count)
@@ -347,7 +315,9 @@ def extractPose(args, cam_mtx, cam_dist):
             end = time.time()
             print(end - start)
             print("Complete Saving")
-            return img_sec_list_l
+            with open(f'{args.output_dir}/../imgpts_dict.pickle', 'wb') as handle:
+                pickle.dump(imgpts_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            return imgpts_dict
 
         # else:
         #     for topic, msg, t in bag.read_messages(topics = args.img_topic):
@@ -376,11 +346,7 @@ def main():
     # np.save('time_stamp',img_sec_list)
 
     data_dir = args.output_dir +'/limg/'
-    cam_mtx = np.zeros((3,3))
-    cam_mtx[0, 0] = 100
-    cam_mtx[1, 1] = 100
-    cam_mtx[0, 2] = 270
-    cam_mtx[1, 2] = 480
+    cam_mtx = np.load('cam_mtx.npy')
     # print(cam_mtx)
     cam_dist = np.zeros([5])
     extractPose(args, cam_mtx, cam_dist)

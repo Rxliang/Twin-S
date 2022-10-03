@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
-from util.dataLoader import dataLoader
+# from dataLoader import dataLoader
+# from util.dataLoader import dataLoader
 from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 
-ld = dataLoader()
+# ld = dataLoader()
 
 
 class solver:
@@ -85,6 +86,16 @@ class solver:
         r = r_i.as_matrix()
         trans = np.vstack((np.hstack((r, t_i_shaped)), np.array([0, 0, 0, 1])))
         return [r, t_i_shaped], trans
+
+    def trans2seven(self, data):
+        '''
+        transformation to Seven parameter
+        '''
+        R = data[:3, :3]
+        r_i = Rotation.from_matrix(R)
+        q = r_i.as_quat()
+        t = data[:3, 3]
+        return np.array([t[0],t[1],t[2],q[0],q[1],q[2],q[3]])
 
     def regPanel(self, csv_data):
         '''
@@ -168,6 +179,14 @@ class solver:
         theta = np.arccos((np.trace(R) - 1) / 2)
         w_hat = (R - R.T) * theta / (2 * np.sin(theta))  # Skew symmetric matrix
         w = np.array([w_hat[2, 1], w_hat[0, 2], w_hat[1, 0]])  # [w1, w2, w3]
-
         return w
 
+    def make_charuco_pattern(self, path):
+        charuco_pattern = np.zeros([88, 3])
+        count = 0
+        for i in range(11):
+            for j in range(8):
+                charuco_pattern[count] = np.array([i*15,j*15,0])
+                count += 1
+        # print(charuco_pattern)
+        charuco_pattern = np.save(path, charuco_pattern)

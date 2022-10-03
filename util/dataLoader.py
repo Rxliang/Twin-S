@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import json
+from util.Solver import solver
+sol = solver()
 
 class dataLoader:
 
@@ -86,14 +88,15 @@ class dataLoader:
                 fs.append(self.makePanelFrame(i - 1, csv_data))
         return fs
 
-    def getToolPose(self, frame, csv_data):
+    def getToolPose(self, frame, csv_path):
         '''
         get the pose data from Surgical_tool topic as:
         [tx, ty, tz, qx, qy, qz, qw]
         @param frame: index of the frame get the data from
         '''
-        tool_placement = csv_data.iloc[frame, 9:12] * 1000
-        tool_orientation = csv_data.iloc[frame, 13:17]
+        csv_data = pd.read_csv(csv_path, header=None)
+        tool_placement = csv_data.iloc[frame, 1:4] * 1000
+        tool_orientation = csv_data.iloc[frame, 4:]
         tool_placement = tool_placement.to_numpy()
         tool_orientation = tool_orientation.to_numpy()
         tool_pose = np.hstack((tool_placement, tool_orientation))
@@ -115,6 +118,19 @@ class dataLoader:
         ls = np.array(ls)
         return ls
 
+    def loadHandeyeJson(self, path):
+        f = open(path + 'calibration_optimized.json')
+        hand_eye_info = json.load(f)
+        quaternion_X = []
+        for j in hand_eye_info["translation"]:
+            quaternion_X.append(float(hand_eye_info["translation"][j])*1000)
+        for i in hand_eye_info["rotation"]:
+            quaternion_X.append(float(hand_eye_info["rotation"][i]))
+
+        _, X = sol.seven2trans(np.array(quaternion_X))
+        np.save(path+'hand_eye_X.npy', X)
+        return X
+
     def getRealPose(self, idx, dirPath):
         df = pd.read_csv(dirPath)
         pose_x = df['pose.position.x'][idx] * 1000
@@ -128,26 +144,17 @@ class dataLoader:
         # print(real_pose, '\n', pose)
         return pose
 
+    def getTimestamp_list(self, csv_path):
+        csv_data = pd.read_csv(csv_path, header=None)
+        timestamp_list = []
+        for i in range(len(csv_data)):
+            timestamp = round(csv_data.iloc[i, 0], 5)
+            timestamp_list.append(timestamp)
+        # timestamp_list = timestamp_list.astype('float64')
+        return timestamp_list
+
 if __name__ == '__main__':
     ld = dataLoader()
-    # csv_data = pd.read_csv('registration_2.3/registration_Marker_1_all_points.csv')
-    # testNum = np.random.random()
-    # markers = ld.makeFrame(0, csv_data)
-    # # print(getMarkerPose(1,1, csv_data), int(testNum * len(csv_data)))
-    # # print(markers,'\n', markers.mean(0))
-    # # print(frames(9)[0])
-    # fs = ld.frames(5, csv_data, panel=True)
-    # print(fs)
-    # sol.regPanel(csv_data)
-    # fs = np.vstack(fs)
-    # csv_data = pd.read_csv('registration_try/registration_Try1_Surgical_Tool_Marker1.csv')
-    # tool_pose = ld.getToolPose(1, csv_data)
-    # frame0 = ld.getInitFrame()
-    # nromal_frame1 = ld.getCentroid("camera_calibration/camera_hand_geometry.csv", 4)
-    # print(nromal_frame1)
-    # res = ld.makePanelFrame(0, csv_data)
-    # print(res)
-    # f = ld.getCentroid("pivot_calibration/drill_geo.csv", 4)
-    # csv_data = pd.read_csv('atracsys_sensitivity_test/atracsys_test_1.5mm.csv')
-    # pose = ld.getToolPose(1, csv_data)
-    # print(pose)
+    # tool_pose = ld.getToolPose(0, '/home/shc/Desktop/data/915/handeye_imu_2/cam_pose.csv')
+    # tl = ld.getTimestamp_list('/home/shc/Desktop/data/915/handeye_imu_2/cam_pose.csv')
+    # print(tl)

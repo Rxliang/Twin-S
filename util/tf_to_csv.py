@@ -13,7 +13,7 @@ from tf2_msgs.msg import TFMessage
 import warnings
 
 
-def write_transformation_to_csv_file(bag_file, target_frame, source_frame,
+def write_transformation_to_csv_file(bag_file, target_frame,
                                      csv_file_name):
   print("Loading tfs into Transformer...")
   tf_tree = tf.Transformer(True, rospy.Duration(3600.0))
@@ -102,8 +102,8 @@ def write_transformation_to_csv_file(bag_file, target_frame, source_frame,
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument('--bag', required=True, help='Rosbag to parse.')
-  parser.add_argument(
-      '--tf_source_frame', default='/atracsys/Drill/measured_cp', help='Name of tf source frame.')
+#   parser.add_argument(
+#       '--tf_source_frame', default='/atracsys/Drill/measured_cp', help='Name of tf source frame.')
   parser.add_argument(
       '--tf_target_frame', default='/atracsys/Camera_hand/measured_cp', help='Name of tf target frame.')
   parser.add_argument(
@@ -114,5 +114,4 @@ if __name__ == '__main__':
   print("tf_to_csv.py: export tf to csv from bag: ", args.bag, "...")
 
   write_transformation_to_csv_file(args.bag, args.tf_target_frame,
-                                   args.tf_source_frame,
                                    args.csv_output_file)
