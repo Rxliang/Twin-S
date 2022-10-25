@@ -1,13 +1,14 @@
 ## Using sksurgery pivot calibraiton
 import sys
 import os
-sys.path.append('.')
+sys.path.append('../')
+sys.path.insert(0, '/home/shc/RoboMaster/util')
 import numpy as np
 import random
 from scipy.optimize import least_squares
-from util.dataLoader import dataLoader
+from dataLoader import dataLoader
 import pandas as pd
-from util.Solver import solver
+from Solver import solver
 sol = solver()
 ld = dataLoader()
 
@@ -347,14 +348,16 @@ def _replace_small_values(the_list, threshold=0.01, replacement_value=0.0):
 
 if __name__ == '__main__':
     ld = dataLoader()
-    pose_path = 'data/pivot_calibration_data/Pivot_510/fwd_pose_drill.csv'
+    pose_path = sys.argv[1]
     csv_data = pd.read_csv(pose_path)
     # print(csv_data.head())
     num_frames = len(csv_data)
     tracking_matrices = np.zeros([num_frames, 4, 4])
     for i in range(num_frames):
-        quaternion = ld.getToolPose(i, csv_data)
+        # quaternion = ld.getToolPose(i, csv_data)
+        quaternion = ld.getToolPose(i, pose_path)
         _, T = sol.seven2trans(quaternion)
+        
         tracking_matrices[i, :, :] = T
 
     # t_tip, p,  residual = pivot_calibration_aos(tracking_matrices)
@@ -367,14 +370,16 @@ if __name__ == '__main__':
                                   )
     print('t_tip:', t_tip.T, "\np:", p.T, '\nresidual:', residual)
 
-    # t_tip: [-27.83457605 211.65772929  60.30093554]
-    # p: [ -73.77732629  282.64998979 1044.3077668 ]
-    # residual: 0.20921389444617003
+    np.save('../params/' + 't_tip.npy', t_tip)
+    # t_tip: [[-20.31321652 144.32784553  60.32107478]] 
+    # p: [[186.10411643 169.93587889 789.05871481]] 
+    # residual: 0.039474511611767314
 
-    # t_tip: [[-27.83457605 211.65772929  60.30093554]]
-    # p: [[-73.77732629  282.64998979 1044.3077668]]
-    # residual: 0.12078969827670569
+    # t_tip: [[-19.839008   143.51497723  60.25705424]] 
+    # p: [[251.22346195 168.24534563 791.33488021]] 
+    # residual: 0.03362991578325285
 
-    # t_tip: [[-28.22107038 211.8026734   60.60522491]]
-    # p: [[-73.92834022  282.82290204 1044.71232874]]
-    # residual: 0.031385092977889474
+    # t_tip: [[  12.83037253 -168.75504173   56.3511996 ]] 
+    # t_tip: [[  12.86018514 -171.22484561   56.06308705]] 1023
+
+

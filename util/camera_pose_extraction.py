@@ -12,6 +12,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as Rot
 from cv2 import aruco
+from tf_to_csv import write_transformation_to_csv_file
 
 bridge = CvBridge()
 
@@ -38,9 +39,12 @@ def initialization():
     # parser.add_argument('--topic',dest="img_topic", help="Topic of image.", default='/camera/color/image_raw/compressed', type=str)
     parser.add_argument('--l_topic',dest="l_img_topic", help="Topic of left image.", default='/zedm/zed_node/left/image_rect_color/compressed', type=str)
     # parser.add_argument('--r_topic',dest="r_img_topic", help="Topic of right image.", default='/fwd_rimage/compressed', type=str)
-    parser.add_argument('--csv',dest='csv_file_name', required=True, help='Path to output csv file')
-    parser.add_argument('--csv_i',dest='csv_file_name_inv', required=True, help='Path to output inverse csv pose file')
+    parser.add_argument('--csv',dest='csv_file_name', help='Path to output csv file', default='./', type=str)
+    # parser.add_argument('--csv_i',dest='csv_file_name_inv', required=True, help='Path to output inverse csv pose file')
     args = parser.parse_args()
+
+    args.output_dir = args.bag_file[:-4] + '/extract_poses/'
+    args.csv_file_name = args.bag_file[:-4] + '/cam_pose.csv'
     valid = verify_cv_bridge()
     # verify_ROS_connection()
     limg_path = args.output_dir +'/limg/'
@@ -245,7 +249,7 @@ def extractPose(args, cam_mtx, cam_dist):
     bridge = CvBridge()
     count = 0
     csv_file = open(args.csv_file_name, 'w')
-    inv_csv_file = open(args.csv_file_name_inv, 'w')
+    # inv_csv_file = open(args.csv_file_name_inv, 'w')
 
     start = time.time()
     imgpts_dict = {}
@@ -278,12 +282,12 @@ def extractPose(args, cam_mtx, cam_dist):
                 inv_quat = inv_r.as_quat()
 
                 # save a inverse matrix (C2W)
-                inv_csv_file.write(
-                str(img_sec) + ', ' +
-                str(t[0,0]/1000) + ', ' + str(t[1,0]/1000) + ', ' +
-                str(t[2,0]/1000) + ', ' + str(quat[0]) + ', ' +
-                str(quat[1]) + ', ' + str(quat[2]) + ', ' +
-                str(quat[3]) + '\n')
+                # inv_csv_file.write(
+                # str(img_sec) + ', ' +
+                # str(t[0,0]/1000) + ', ' + str(t[1,0]/1000) + ', ' +
+                # str(t[2,0]/1000) + ', ' + str(quat[0]) + ', ' +
+                # str(quat[1]) + ', ' + str(quat[2]) + ', ' +
+                # str(quat[3]) + '\n')
 
                 # save a inverse matrix (W2C)
 
@@ -344,7 +348,10 @@ def main():
     initialization()
     # img_sec_list = bag2images(args)
     # np.save('time_stamp',img_sec_list)
-
+    target_frame = '/atracsys/Camera_hand/measured_cp'
+    csv_name = args.bag_file[:-4] + '/tf_poses_camhand.csv'
+    write_transformation_to_csv_file(args.bag_file, target_frame,
+                                     csv_name)
     data_dir = args.output_dir +'/limg/'
     cam_mtx = np.load('cam_mtx.npy')
     # print(cam_mtx)

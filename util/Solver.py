@@ -4,7 +4,8 @@ import pandas as pd
 # from util.dataLoader import dataLoader
 from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
-
+import cv2
+import os
 # ld = dataLoader()
 
 
@@ -180,6 +181,28 @@ class solver:
         w_hat = (R - R.T) * theta / (2 * np.sin(theta))  # Skew symmetric matrix
         w = np.array([w_hat[2, 1], w_hat[0, 2], w_hat[1, 0]])  # [w1, w2, w3]
         return w
+
+    def img2video(self, path):
+         # cv record video
+        fps = 30
+        size = (1920, 1080)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        saveName = os.path.join(path)
+        videoWriter = cv2.VideoWriter(saveName, fourcc, fps, size)
+        for img in img_dir:
+            img_left = cv2.imread(img)
+            # get image index
+            idx = re.findall('\d+', str(f_left))[-1]
+
+            recImgL = cv2.remap(img_left, mapLx, mapLy, cv2.INTER_LINEAR)
+            recImgR = cv2.remap(img_right, mapRx, mapRy, cv2.INTER_LINEAR)
+
+        if leftOnly:
+            # cv2.imwrite(rectify_dir + f'/rectified_left/{idx}.jpeg', recImgL)
+            # print(f'Finish writing {idx}!')
+            # cv2.imshow('limg', recImgL)
+            videoWriter.write(recImgL)
+            print(f'finish rectification frame {idx}.')
 
     def make_charuco_pattern(self, path):
         charuco_pattern = np.zeros([88, 3])

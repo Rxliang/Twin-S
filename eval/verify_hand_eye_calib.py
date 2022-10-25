@@ -3,14 +3,16 @@ import sys
 import argparse
 from glob import glob
 sys.path.append('../')
+sys.path.insert(0, '/home/shc/RoboMaster/util')
 import numpy as np
-from util.dataLoader import dataLoader
-from util.Solver import solver
+from dataLoader import dataLoader
+from Solver import solver
 import os
 from natsort import natsorted
 import cv2
 import pickle
 from preparation.stereo_vision_pipeline import getChessPoses, draw, draw_full, chessboard_pose
+
 ld = dataLoader()
 sol = solver()
 
@@ -34,6 +36,8 @@ def initialization():
     if not os.path.exists(limg_path):
         os.makedirs(limg_path)
         print("No Designated Address limg found...")
+    json_dir = args.output_dir + '/'
+    ld.loadHandeyeJson(json_dir)
 
 def get_init_frame(aligned_camhand_path, aligned_campose_path, num_idx, h2e_path):
     B2H_seven = ld.getToolPose(num_idx, aligned_camhand_path)
@@ -72,6 +76,15 @@ def backProject(timestamp_list, intrinsic_params_dir, W2E_list, org_imgpts_dict,
     cam_dist = np.zeros([5])
     j = 0
     bp_error = []
+
+    # cv record video
+    fps = 30
+    size = (1920, 1080)
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    saveName = os.path.join(reproj_dir, 'reprojection.avi')
+    videoWriter = cv2.VideoWriter(saveName, fourcc, fps, size)
+
+
     for (idx,timestamp) in enumerate(timestamp_list):
         W2E = W2E_list[j]
         R = W2E[:3, :3]
@@ -100,14 +113,14 @@ def backProject(timestamp_list, intrinsic_params_dir, W2E_list, org_imgpts_dict,
                 img = draw(img, imgpts_org, color='org')
                 # img = draw_full(img, imgpts, (7, 10), color='b')
                 img = draw_full(img, imgpts, (8, 11), color='p')
-                # cv2.imwrite(os.path.join(data_dir, str(idx) + '_axis_verify_1.png'), img)
-                cv2.imwrite(os.path.join(reproj_dir, str(j) + '_reproj.png'), img)
+                # cv2.imwrite(os.path.join(reproj_dir, str(j) + '_reproj.png'), img)
+                videoWriter.write(img)
         except:
             j += 1
             continue
-        # if j >= 600:
-        #     break
-    print('Mean backProj error:', np.mean(bp_error))
+
+    videoWriter.release()
+    print('Mean reProjection error:', np.mean(bp_error))
     return np.mean(bp_error)
 
 if __name__ == '__main__':

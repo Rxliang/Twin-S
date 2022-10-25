@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import json
-from util.Solver import solver
+import os
+from Solver import solver
 sol = solver()
 
 class dataLoader:
@@ -130,6 +131,23 @@ class dataLoader:
         _, X = sol.seven2trans(np.array(quaternion_X))
         np.save(path+'hand_eye_X.npy', X)
         return X
+
+    def loadMaualPointCloud(self, dirPath, sub_dir):
+        fileNum = 0
+        p_list = []
+        sub_path = os.path.join(dirPath, sub_dir)
+        for name in os.listdir(sub_path):
+            name = os.path.join(os.path.abspath(sub_path), name)
+            data = self.loadJson(name)
+            data[0] = data[0]/1000
+            data[1] = data[1]/1000
+            data[2] = data[2]/1000
+            # print(data)
+            p_list.append(data)
+            fileNum = fileNum + 1
+        p_list = np.vstack(p_list)
+        print('point num:', fileNum)
+        return p_list
 
     def getRealPose(self, idx, dirPath):
         df = pd.read_csv(dirPath)

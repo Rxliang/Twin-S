@@ -8,13 +8,15 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseStamped
 count = 0
 
-def callback(rimage, limage, pose_drill, pose_camhand):
+def callback(limage, pose_drill, pose_camhand):
+# def callback(limage, pose_camhand):
+
     global count
     global pub1, pub2, pub3, pub4, pub5
     # print('enter')
     # Timestamp info
-    img_sec = rimage.header.stamp.secs
-    img_nsec = rimage.header.stamp.nsecs
+    img_sec = limage.header.stamp.secs
+    img_nsec = limage.header.stamp.nsecs
 
     # drill_sec = pose_drill.header.stamp.secs
     # drill_nsec = pose_drill.header.stamp.nsecs
@@ -22,7 +24,7 @@ def callback(rimage, limage, pose_drill, pose_camhand):
     print('img_sec:',img_sec)
 
     # Publish
-    pub1.publish(rimage)
+    # pub1.publish(rimage)
     pub2.publish(limage)
     # pub3.publish(pose_pan)
     pub4.publish(pose_drill)
@@ -39,7 +41,7 @@ def my_shutdown_hook():
 rospy.init_node('image_extract_node', anonymous=True)
 
 # Subscribers
-rimage_sub = message_filters.Subscriber('/zedm/zed_node/right/image_rect_color/compressed', CompressedImage)
+# rimage_sub = message_filters.Subscriber('/zedm/zed_node/right/image_rect_color/compressed', CompressedImage)
 limage_sub = message_filters.Subscriber('/zedm/zed_node/left/image_rect_color/compressed', CompressedImage)
 #pose_pan_sub = message_filters.Subscriber('/atracsys/Panel/measured_cp', PoseStamped)
 pose_drill_sub = message_filters.Subscriber('/atracsys/Drill/measured_cp', PoseStamped)
@@ -47,7 +49,7 @@ pose_camhand_sub = message_filters.Subscriber('/atracsys/Camera_hand/measured_cp
 
 
 # Publisher
-pub1 = rospy.Publisher('fwd_rimage/compressed', CompressedImage, queue_size=50)
+# pub1 = rospy.Publisher('fwd_rimage/compressed', CompressedImage, queue_size=50)
 pub2 = rospy.Publisher('fwd_limage/compressed', CompressedImage, queue_size=50)
 # pub3 = rospy.Publisher('fwd_pose_pan', PoseStamped, queue_size=50)
 pub4 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
@@ -58,7 +60,8 @@ pub5 = rospy.Publisher('fwd_pose_camhand', PoseStamped, queue_size=50)
     
     # Approximate time synchronizing
     # pub1.publish(rimage_sub)
-ts = message_filters.ApproximateTimeSynchronizer([rimage_sub, limage_sub, pose_drill_sub, pose_camhand_sub], 50, 0.5)
+ts = message_filters.ApproximateTimeSynchronizer([limage_sub, pose_drill_sub, pose_camhand_sub], 50, 0.5)
+# ts = message_filters.ApproximateTimeSynchronizer([limage_sub, pose_camhand_sub], 50, 0.5)
 ts.registerCallback(callback)
 
 rospy.spin()
