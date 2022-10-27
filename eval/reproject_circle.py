@@ -79,11 +79,27 @@ def general_Test(drill_path, cam_hand_path, img_path, X_path):
         t_cd = Cam2Drill[:3, 3]
 
         pivot0 = np.load('../params/t_tip.npy')
+        # pivot0 = np.array([[12.83037253], [-168.75504173], [56.3511996]]) #1017
         # print('Op2tip',Op2Drill[:3,:3] @ pivot0 + Op2Drill[:3, 3], p)
         # pivot = np.array([[12.50173232,  6.24592626,  279.6911268]]).T
         c2tip = R_cd @ pivot0 + np.expand_dims(t_cd, 1)
 
-        pix,val,dist = projectWithoutDistortion(cam_mtx, 1920, 1080, c2tip)
+        R_d2tip =np.array([[-0.18795203,  0.06529684, -0.98000528],
+                        [ 0.97997203, -0.05437232, -0.19156843],
+                        [-0.06579397, -0.99638345, -0.05376969]])
+
+        cam2tip = np.vstack([np.hstack([Cam2Drill[:3,:3]@R_d2tip,c2tip.reshape(3,1)]),np.array([0,0,0,1]).reshape(1,4)])
+
+        # optimize the cam2tip
+        T_delta = np.array([[0.9991, 0.0405, 0.0156, 0.0026],
+                    [-0.0412, 0.9983, 0.0420, 0.0015],
+                    [-0.0139, -0.0426, 0.9990, -0.0016],
+                    [0, 0, 0, 1]])
+        T_delta[:3, 3] = T_delta[:3, 3]*1000
+        cam2tip = cam2tip@T_delta
+        
+        cam2tip_t = cam2tip[:3, 3].reshape(3,1)
+        pix,val,dist = projectWithoutDistortion(cam_mtx, 1920, 1080, cam2tip_t)
         # print(pix,val,dist)
         imgpt = np.int32(pix).reshape(-1, 2)
         # print('imgpt:', imgpt[0])
