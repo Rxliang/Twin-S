@@ -91,12 +91,13 @@ def general_Test(drill_path, cam_hand_path, img_path, X_path):
         cam2tip = np.vstack([np.hstack([Cam2Drill[:3,:3]@R_d2tip,c2tip.reshape(3,1)]),np.array([0,0,0,1]).reshape(1,4)])
 
         # optimize the cam2tip
-        T_delta = np.array([[0.9991, 0.0405, 0.0156, 0.0026],
-                    [-0.0412, 0.9983, 0.0420, 0.0015],
-                    [-0.0139, -0.0426, 0.9990, -0.0016],
-                    [0, 0, 0, 1]])
+        T_delta = np.array([[ 0.9999,  0.0109, -0.0023, 0.008],
+                            [-0.0110,  0.9988, -0.0482, 0.0085],
+                            [ 0.0018,  0.0482,  0.9988, -0.0073],
+                            [0, 0, 0, 1]])
         T_delta[:3, 3] = T_delta[:3, 3]*1000
-        cam2tip = cam2tip@T_delta
+        T_delta = np.identity(4)
+        cam2tip = T_delta@cam2tip
         
         cam2tip_t = cam2tip[:3, 3].reshape(3,1)
         pix,val,dist = projectWithoutDistortion(cam_mtx, 1920, 1080, cam2tip_t)
@@ -196,31 +197,12 @@ def getCircleCentroid(dir, img_idx):
     return center[0], center[1], rec_org
 
 
-# def get3Dcoord(coord_disp_list, path):
-#     M_l = Q_intrinsic(path)
-#     T = np.load(os.path.join('intrinsic_params_421', 'T.npy'))
-#     f_length = M_l[0, 0]
-#     baseline = abs(T[0])
-#     cx = M_l[0, 2]
-#     cy = M_l[1, 2]
-#     Z = (f_length * baseline) / (coord_list[0][0]-coord_list[1][0])# depth
-#     X = (coord_disp_list[0][0] - cx) * Z / f_length
-#     Y = (coord_disp_list[0][1] - cy) * Z / f_length
-#     # coord = cv2.reprojectImageTo3D(dis_map, Q)
-#     coord = np.array([X, Y, Z])
-#     return coord
-
-
 if __name__ == '__main__':
     path = sys.argv[1]#'../Drill_510_0'
-    # intrinsic_dir = '/intrinsic_params_510'
     handeye_dir = sys.argv[2]#'Charuco_handeye_510'
-    # center0, center1, _ = getCircleCentroid(path, 1)
-    # coord_list = [center0['1'], center1['2']]
-    # coord = get3Dcoord(coord_list, path)
-    # print(coord, np.linalg.norm(coord))
+
     drill_path = os.path.join(path, 'fwd_pose_drill.csv')
     cam_hand_path = os.path.join(path, 'fwd_pose_camhand.csv')
     X_path = os.path.join(handeye_dir)
-    img_path = os.path.join(path, 'img')
+    img_path = os.path.join(path, 'limg')
     general_Test(drill_path, cam_hand_path, img_path, X_path)

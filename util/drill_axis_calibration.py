@@ -56,7 +56,6 @@ def axisCalibration(pose_path):
     pointsInDrill = np.zeros([len(translation_array), 3])
     for i in range(len(dislist)):
         pointsInDrill[i+1, 0] = np.sum(dislist[:i+1])
-    print(pointsInDrill)
     # scipy vector align to get the rotation
     (r, rmsd) = Rot.align_vectors(pointsInDrill, translation_array)
     R_o_tip = r.as_matrix()
@@ -66,7 +65,8 @@ def axisCalibration(pose_path):
     csv_data = pd.read_csv(pose_path)
     num_frames = len(csv_data)
     translation_array = []
-    pivot = np.array([[12.83037253, -168.75504173, 56.3511996]]).T
+    # pivot = np.array([[12.83037253, -168.75504173, 56.3511996]]).T ##17
+    pivot = np.load('/home/shc/RoboMaster/params/t_tip.npy')
     for i in range(num_frames):
         # quaternion = ld.getToolPose(i, csv_data)
         seven_params = ld.getToolPose(i, pose_path)
@@ -74,7 +74,8 @@ def axisCalibration(pose_path):
         R_d_tip = sol.invTransformation(F_o_drill)[:3, :3]@R_o_tip
         r = Rot.from_matrix(R_d_tip)
         euler = r.as_euler('zyx', degrees=True)
-        print(R_d_tip)
+        # print(R_d_tip)
+    np.save('../params/R_d_tip.npy', R_d_tip)
 
 if __name__ == '__main__':
     pose_path = sys.argv[1]

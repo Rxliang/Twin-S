@@ -159,18 +159,18 @@ def phantom_registration(dirpath):
 
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(point_cloud)
-    # o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply", pcd)
+    o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply", pcd)
     pcd_source = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply")
 
     # # # convert mesh to point cloud and save
-    mesh = o3d.io.read_triangle_mesh("../data/phantom_point-cloud_data/phacon_512box.stl")
+    mesh = o3d.io.read_triangle_mesh("../data/phantom_point-cloud_data/phacon_1028.stl")
     pcd2 = o3d.geometry.PointCloud()
     pcd2.points = mesh.vertices
     pcd2.colors = mesh.vertex_colors
     pcd2.normals = mesh.vertex_normals
-    o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_512box.ply", pcd2)
+    o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_1028.ply", pcd2)
 
-    pcd_target = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_512box.ply")
+    pcd_target = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_1028.ply")
     pcd_target = pcd_target.voxel_down_sample(voxel_size=0.001)
     # o3d.visualization.draw_geometries([pcd_target, pcd_source])
     
@@ -216,6 +216,6 @@ if __name__ == '__main__':
     # ph2pan = np.load('../params/phacon2pan.npy')
     ph2pan[:3,3] = ph2pan[:3,3]*1000
     # print(ph2pan)
-    np.save('../params/phacon2pan.npy', ph2pan)
+    np.save('../params/phacon2pan_1028.npy', ph2pan)
 
     

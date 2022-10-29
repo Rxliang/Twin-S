@@ -24,29 +24,85 @@ def creatFolder(output_dir):
         print("Create Folder at Designated Address...")
 
 # this function is for read image,the input is directory name
-def modify_images(limage_path, segm_path):
+def save_modified_images(limage_path, segm_path):
     global overlay_path, modified_limg_path, modified_seg_path
     array_of_img = [] # this if for store all of the image data
     img_list = os.listdir(limage_path)
     img_list = natsorted(img_list)
     count = 0
+    creatFolder(overlay_path)
+    creatFolder(modified_seg_path)
+    creatFolder(modified_limg_path)
+    
     for file in img_list:
         limg = cv2.imread(limage_path + "/" + file)
         segm = cv2.imread(segm_path + "/" + file)
-        # new_limg = cv2.copyMakeBorder(limg, 230, 220, 100, 0, cv2.BORDER_CONSTANT)
-        new_limg = cv2.copyMakeBorder(limg, 270, 190, 100, 40, cv2.BORDER_CONSTANT)
+        # new_limg = cv2.copyMakeBorder(limg, 230, 130, 0, 0, cv2.BORDER_CONSTANT)
+        new_limg = cv2.copyMakeBorder(limg, 246, 184, 68, 0, cv2.BORDER_CONSTANT)
         new_limg = cv2.resize(new_limg, (640, 480))
         cv2.imwrite('segm.jpeg', segm)
         segm = zoom_center(segm)
         segm = segm[:480, :640]
 
-        overlap = cv2.addWeighted(new_limg, 0.5, segm, 0.5, 0)
+        overlap = cv2.addWeighted(new_limg, 0.8, segm, 0.4, 0)
         count += 1
         print(count)
         # new_img = np.vstack([img, t])
         # print(new_img.shape)
         cv2.imshow('img', overlap)
-        cv2.waitKey(0)
+        # cv2.waitKey(0)
+
+        cv2.imwrite(overlay_path + "/" + file, overlap)
+        cv2.imwrite(modified_seg_path + "/" + file, segm)
+        cv2.imwrite(modified_limg_path + "/" + file, new_limg)
+        # break
+        # array_of_img.append(img)
+        # print(array_of_img)
+
+
+def modify_images(limage_path, segm_path):
+    global overlay_path, modified_limg_path, modified_seg_path
+
+    cv2.namedWindow('Image Pad Modify')
+    cv2.createTrackbar('x1','Image Pad Modify',0,300,nothing)
+    cv2.createTrackbar('x2','Image Pad Modify',0,300,nothing)
+    cv2.createTrackbar('y1','Image Pad Modify',0,300,nothing)
+    cv2.createTrackbar('y2','Image Pad Modify',0,300,nothing)
+
+    switch = '0:OFF\n1:ON'
+    cv2.createTrackbar(switch, 'Image Pad Modify',0,1,nothing)
+
+    array_of_img = [] # this if for store all of the image data
+    img_list = os.listdir(limage_path)
+    img_list = natsorted(img_list)
+    count = 0
+    for file in img_list:
+        while True:
+        # print(file)
+            limg = cv2.imread(limage_path + "/" + file)
+            # print(limg.shape)
+            segm = cv2.imread(segm_path + "/" + file)
+            # print(segm.shape)
+            x1 = cv2.getTrackbarPos('x1','Image Pad Modify')
+            x2 = cv2.getTrackbarPos('x2','Image Pad Modify')
+            y1 = cv2.getTrackbarPos('y1','Image Pad Modify')
+            y2 = cv2.getTrackbarPos('y2','Image Pad Modify')
+            print(x1,x2,y1,y2)
+            # new_limg = cv2.copyMakeBorder(limg, 230, 220, 100, 0, cv2.BORDER_CONSTANT)
+            new_limg = cv2.copyMakeBorder(limg, x1, x2, y1, y2, cv2.BORDER_CONSTANT)
+            new_limg = cv2.resize(new_limg, (640, 480))
+
+            # cv2.imwrite('segm.jpeg', segm)
+            # segm = zoom_center(segm, 1.07)
+            segm = segm[:480, :640]
+
+            overlap = cv2.addWeighted(new_limg, 0.5, segm, 0.5, 0)
+            count += 1
+            print(count)
+            # new_img = np.vstack([img, t])
+            # print(new_img.shape)
+            cv2.imshow('Image Pad Modify', overlap)
+            cv2.waitKey(0)
         # cv2.imwrite(overlay_path + "/" + file, overlap)
         # cv2.imwrite(modified_seg_path + "/" + file, segm)
         # cv2.imwrite(modified_limg_path + "/" + file, new_limg)
@@ -54,17 +110,17 @@ def modify_images(limage_path, segm_path):
         # array_of_img.append(img)
         # print(array_of_img)
 
-
+def nothing(x):
+    pass
 
 if __name__ == '__main__':
-    path = '/home/shc/Desktop/data/1023/sync_phacon_5'
+    path = '/home/shc/Desktop/data/1023/sync_phacon_4'
     # path = '/home/shc/Desktop/data/1026/phacon_segm_depth_2'
     seg_path = os.path.join(path, 'segm_mask')
     limg_path = os.path.join(path, 'limg')
     overlay_path = os.path.join(path, 'overlay')
     modified_seg_path = os.path.join(path, 'modified_segm_mask')
     modified_limg_path = os.path.join(path, 'modified_limg')
-    creatFolder(overlay_path)
-    creatFolder(modified_seg_path)
-    creatFolder(modified_limg_path)
-    modify_images(limg_path, seg_path)
+
+    # modify_images(limg_path, seg_path)
+    save_modified_images(limg_path, seg_path)

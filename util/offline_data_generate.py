@@ -53,9 +53,9 @@ depth_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/De
 # Publisher
 # pub1 = rospy.Publisher('fwd_rimage/compressed', CompressedImage, queue_size=50)
 pub2 = rospy.Publisher('sync_limage/compressed', CompressedImage, queue_size=50)
-pub3 = rospy.Publisher('sync_pose_pan', PoseStamped, queue_size=50)
-pub4 = rospy.Publisher('sync_pose_drill', PoseStamped, queue_size=50)
-pub5 = rospy.Publisher('sync_pose_camhand', PoseStamped, queue_size=50)
+# pub3 = rospy.Publisher('sync_pose_pan', PoseStamped, queue_size=50)
+# pub4 = rospy.Publisher('sync_pose_drill', PoseStamped, queue_size=50)
+# pub5 = rospy.Publisher('sync_pose_camhand', PoseStamped, queue_size=50)
 pub6 = rospy.Publisher('sync_segm/compressed', CompressedImage, queue_size=50)
 pub7 = rospy.Publisher('sync_depthData', PointCloud2, queue_size=50)
 

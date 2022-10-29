@@ -151,6 +151,20 @@ class solver:
         inv_trans = np.vstack((np.hstack((R_new, t_new)), np.array([0,0,0,1])))
         return inv_trans
 
+    def rosmsg2quat(self, msg):
+        '''
+        transfer a rosmsg pose to seven params.
+        '''
+        t_x = msg.pose.position.x 
+        t_y = msg.pose.position.y 
+        t_z = msg.pose.position.z 
+        x = msg.pose.orientation.x
+        y = msg.pose.orientation.y
+        z = msg.pose.orientation.z
+        w = msg.pose.orientation.w
+        conv_quat = [t_x,t_y,t_z,x,y,z,w]
+        return conv_quat
+
     def trackTip(self, data, t_tip=np.array([-12.48857839 ,241.80863525 , 7.7726727])):
         '''
         The geometry used is geometryTry2
