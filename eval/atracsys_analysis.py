@@ -1,14 +1,14 @@
 # -*-coding: utf-8- -*-
 
 import numpy as np
-from dataLoader import dataLoader
+# from dataLoader import dataLoader
 import matplotlib.pyplot as plt
 import pandas as pd
 from decimal import Decimal
 from scipy import stats
 import seaborn as sns
 
-ld = dataLoader()
+# ld = dataLoader()
 
 
 def getPlacement(dir):
@@ -89,7 +89,6 @@ def Analyze(dir1, dir2, dir5):
     dis_list1 = []
     dis_list2 = []
     points2 = np.array([tool_placement5[dict2[i]:dict2[i] + 50] for i in range(4)])
-
     for i in range(4):
         np.random.shuffle(points0[i])
 
@@ -123,9 +122,9 @@ def Analyze(dir1, dir2, dir5):
     return dis_list0, dis_list1, dis_list2
 
 if __name__ == '__main__':
-    dir1 = 'atracsys_sensitivity_test/atracsys_5mm_test1.csv'
-    dir2 = 'atracsys_sensitivity_test/atracsys_5mm_test2.csv'
-    dir3 = 'atracsys_sensitivity_test/atracsys_5mm_test3.csv'
+    dir1 = '/home/shc/RoboMaster/data/atracsys_sensitivity_eval_data/atracsys_5mm_test1.csv'
+    dir2 = '/home/shc/RoboMaster/data/atracsys_sensitivity_eval_data/atracsys_5mm_test2.csv'
+    dir3 = '/home/shc/RoboMaster/data/atracsys_sensitivity_eval_data/atracsys_5mm_test3.csv'
     dis_list0, dis_list1, dis_list2 = Analyze(dir1, dir2, dir3)
     # total_list = np.hstack((2-dis_list1, 5-dis_list2))
     # x = np.array([i for i in range(150)])
