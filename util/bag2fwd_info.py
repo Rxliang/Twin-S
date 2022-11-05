@@ -12,6 +12,7 @@ import argparse
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from PIL import Image
+from depthmap import SqueezedNorm
 bridge = CvBridge()
 
 
@@ -34,7 +35,7 @@ def initialization():
     parser.add_argument('--outdir',dest="output_dir", help="Output directory.", default='./Data', type=str)
     parser.add_argument('--stereo',dest="stereo", help="Stereo or monocular.", action='store_true')
     parser.add_argument('--limg',dest="limg", help="Left image only.", action='store_true')
-    parser.add_argument('--panel',dest="pan", help="With phacon panel or not.", action='store_true')
+    parser.add_argument('--panel',dest="pan", help="With phacon panel or not.", action='store_false')
     parser.add_argument('--l_topic',dest="l_img_topic", help="Topic of left image.", default='/sync_limage/compressed', type=str)
     parser.add_argument('--r_topic',dest="r_img_topic", help="Topic of right image.", default='/fwd_rimage/compressed', type=str)
     parser.add_argument('--segm',dest="segm", help="Segmentation masks.", action='store_true')
@@ -114,7 +115,7 @@ def saveImagesFromBag(bag, topics, img_sec_list, path):
 def saveDepthImagesFromBag(bag, topics, path):
     global count
     
-    scale = 0.194
+    scale = 0.180
     extrinsic = np.array([[0, 1, 0, 0], [0, 0, -1, 0],
                           [-1, 0, 0, 0], [0, 0, 0, 1]]) 
     [h, w] = [480, 640]
@@ -135,8 +136,10 @@ def saveDepthImagesFromBag(bag, topics, path):
             'ab,hwb->hwa', extrinsic[:3, :3], scaled_depth)[..., -1]
         # visualize
         image_path = path + str(count) + '.png'
-        plt.imshow(scaled_depth, vmin=0, vmax=0.26, cmap='Blues') #twilight #binary
-        plt.colorbar(label='depth m', orientation='vertical')
+        norm=SqueezedNorm(vmin=0, vmax=0.26, mid=0.13, s1=1.79, s2=2.45)
+        plt.imshow(scaled_depth, vmin=0, vmax=0.26, cmap='Blues', norm=norm) #twilight #binary
+        plt.colorbar(label='depth m', orientation='vertical', shrink=0.8)
+        plt.axis('off')
         plt.savefig(image_path)
         plt.close()
         count += 1

@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
 import os
-
+import pyrealsense2 as rs
+import open3d as o3d
 import rospy
 import message_filters
-from sensor_msgs.msg import CompressedImage, PointCloud2
+from sensor_msgs.msg import CompressedImage, PointCloud2, PointField
 from geometry_msgs.msg import PoseStamped
+from generate_filtered_pcd import convert_rs_frames_to_pointcloud
 count = 0
 
-def callback(rimage, limage, segm, depth, pose_pan, pose_drill, pose_camhand):
+def callback(rimage, limage, segm, depth, pose_pan, pose_drill, pose_camhand, realsense):
     global count
     global pub1, pub2, pub3, pub4, pub5
     # print('enter')
@@ -28,6 +30,8 @@ def callback(rimage, limage, segm, depth, pose_pan, pose_drill, pose_camhand):
     pub5.publish(pose_camhand)
     pub6.publish(segm)
     pub7.publish(depth)
+    pub8.publish(realsense)
+
 
     count += 1
 
@@ -48,6 +52,7 @@ depth_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/De
 pose_pan_sub = message_filters.Subscriber('/atracsys/Panel/measured_cp', PoseStamped)
 pose_drill_sub = message_filters.Subscriber('/atracsys/Surgical_drill/measured_cp', PoseStamped)
 pose_camhand_sub = message_filters.Subscriber('/atracsys/Camera_hand/measured_cp', PoseStamped)
+realsense_sub = message_filters.Subscriber('/real/realsense_pcl', PointCloud2)
 
 
 # Publisher
@@ -58,8 +63,10 @@ pub4 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
 pub5 = rospy.Publisher('fwd_pose_camhand', PoseStamped, queue_size=50)
 pub6 = rospy.Publisher('fwd_segm/compressed', CompressedImage, queue_size=50)
 pub7 = rospy.Publisher('fwd_depthData', PointCloud2, queue_size=50)
+pub8 = rospy.Publisher('fwd_realsense_depthData', PointCloud2, queue_size=10)
 
-ts = message_filters.ApproximateTimeSynchronizer([rimage_sub, limage_sub, segm_sub, depth_sub, pose_pan_sub, pose_drill_sub, pose_camhand_sub], 50, 0.5)
+
+ts = message_filters.ApproximateTimeSynchronizer([rimage_sub, limage_sub, segm_sub, depth_sub, pose_pan_sub, pose_drill_sub, pose_camhand_sub, realsense_sub], 50, 0.5)
 # test = message_filters.ApproximateTimeSynchronizer([rimage_sub, segm_sub], 50, 0.5)
 ts.registerCallback(callback)
 

@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
 import os
-
+import ros_numpy
+import cv2
+import numpy as np
 import rospy
 import message_filters
 from sensor_msgs.msg import CompressedImage, PointCloud2
 from geometry_msgs.msg import PoseStamped
 count = 0
+
 
 def callback(limage, segm, depth):
     global count
@@ -36,6 +39,10 @@ def my_shutdown_hook():
     print("in my_shutdown_hook")
 
 
+
+scale = 0.194
+extrinsic = np.array([[0, 1, 0, 0], [0, 0, -1, 0],
+                          [-1, 0, 0, 0], [0, 0, 0, 1]]) 
  
 # Initialize ROS node
 rospy.init_node('image_extract_node', anonymous=True)
