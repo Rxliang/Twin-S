@@ -29,7 +29,7 @@ line, = ax.plot(x, norm(x))
 ax.margins(0)
 ax.set_ylim(0,1)
 
-im = ax2.imshow(np.atleast_2d(x).T, cmap="Blues", norm=norm, aspect="auto")
+im = ax2.imshow(np.atleast_2d(x).T, cmap="Spectral_r", norm=norm, aspect="auto")
 cbar = fig.colorbar(im ,cax=ax3,ax=ax2, orientation="horizontal")
 midax = plt.axes([0.1, 0.04, 0.2, 0.03], facecolor="lightblue")
 s1ax = plt.axes([0.4, 0.04, 0.2, 0.03], facecolor="lightblue")
