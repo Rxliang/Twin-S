@@ -5,10 +5,13 @@ import numpy as np
 import copy
 import open3d as o3d
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 from dataLoader import dataLoader
 from Solver import solver
 import os
+import seaborn as sns
+
 ld = dataLoader()
 sol = solver()
 
@@ -144,35 +147,37 @@ def manual_registration(source, target):
     print("")
     return reg_p2p
 
-def phantom_registration(dirpath):
-    point_cloud = []
+def phantom_registration(dirpath, pcd_source, pcd_target):
+    # point_cloud = []
     op2pan_array = ld.loadMaualPointCloud(dirpath, 'hmd')
     op2drill_array = ld.loadMaualPointCloud(dirpath, 'inst')
     _, op2pan = sol.seven2trans(op2pan_array[10])
-    t_tip = np.array([12.83037253, -168.75504173, 56.3511996 ])/1000
+    # t_tip = np.array([12.83037253, -168.75504173, 56.3511996 ])/1000
 
-    for i in range(len(op2drill_array)):
-        point = sol.trackTip(op2drill_array[i], t_tip).T
-        point_cloud.append(point)
-    point_cloud = np.vstack(point_cloud)
-    # visulizePoints(point_cloud)
+    # for i in range(len(op2drill_array)):
+    #     point = sol.trackTip(op2drill_array[i], t_tip).T
+    #     point_cloud.append(point)
+    # point_cloud = np.vstack(point_cloud)
+    # # visulizePoints(point_cloud)
 
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(point_cloud)
-    o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply", pcd)
-    pcd_source = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply")
+    # pcd = o3d.geometry.PointCloud()
+    # pcd.points = o3d.utility.Vector3dVector(point_cloud)
+    # # o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply", pcd)
+    # # pcd_source = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_1017_388_in_meters.ply")
+    # pcd_source = o3d.io.read_point_cloud("../util/cropped_exp_3.ply")
 
-    # # # convert mesh to point cloud and save
-    mesh = o3d.io.read_triangle_mesh("../data/phantom_point-cloud_data/phacon_1028.stl")
-    pcd2 = o3d.geometry.PointCloud()
-    pcd2.points = mesh.vertices
-    pcd2.colors = mesh.vertex_colors
-    pcd2.normals = mesh.vertex_normals
-    o3d.io.write_point_cloud("../data/phantom_point-cloud_data/phacon_1028.ply", pcd2)
 
-    pcd_target = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_1028.ply")
-    pcd_target = pcd_target.voxel_down_sample(voxel_size=0.001)
-    # o3d.visualization.draw_geometries([pcd_target, pcd_source])
+    # # # # convert mesh to point cloud and save
+    # mesh = o3d.io.read_triangle_mesh("/home/shc/Documents/phacon_data/phacon_exp_3.stl")
+    # pcd2 = o3d.geometry.PointCloud()
+    # pcd2.points = mesh.vertices
+    # pcd2.colors = mesh.vertex_colors
+    # pcd2.normals = mesh.vertex_normals
+    # pcd_path = '../data/phantom_point-cloud_data/phacon_exp_2.ply'
+    # o3d.io.write_point_cloud(pcd_path, pcd2)
+
+    # pcd_target = o3d.io.read_point_cloud(pcd_path)
+    # pcd_target = pcd_target.voxel_down_sample(voxel_size=0.001)
     
     voxel_size=0.05
 
@@ -184,7 +189,7 @@ def phantom_registration(dirpath):
     # vis.create_window()
     # vis.add_geometry(pcd_source)
     # vis.add_geometry(pcd_target)
-    threshold = 0.0008
+    threshold = 0.005
     # icp_iteration = 10
     
     trans_init_icp = result.transformation
@@ -204,18 +209,103 @@ def phantom_registration(dirpath):
     print(reg_p2l)
     print("Transformation is:")
     print(reg_p2l.transformation)
+    # index = np.asarray(reg_p2l.correspondence_set)
+    # pcd.points[index [0,:5]]
     draw_registration_result(pcd_source, pcd_target, reg_p2l.transformation)
     ph2op = reg_p2l.transformation
+    np.save('reg_trans_exp_3', reg_p2l.transformation)
+    np.save('reg_corres_set_exp_3', reg_p2l.correspondence_set)
+
     # print(sol.invTransformation(ph2op))
     ph2pan =ph2op @ op2pan
-    return ph2pan
+    return ph2pan, reg_p2l
+
+
+def eval_registration(reg_p2l, pcd_source, pcd_target):
+    pcd_source_tmp = copy.deepcopy(pcd_source)
+    # correspondence_set = np.load('reg_corres_set_exp_3.npy')
+    # reg_trans = np.load('reg_trans_exp_3.npy')
+    correspondence_set = np.asarray((reg_p2l.correspondence_set))
+    reg_trans = reg_p2l.transformation
+    # correspondence_set = np.load('eval_corr.npy')
+    print(correspondence_set.shape)
+    source_corr = np.asarray(pcd_source_tmp.transform(reg_trans).points)[correspondence_set[:,0],:]
+
+
+    target_corr = np.asarray(pcd_target.points)[correspondence_set[:,1],:]
+    print((source_corr-target_corr).shape)
+
+    dist_pointwise = np.linalg.norm(source_corr-target_corr,axis = 1)
+    print(dist_pointwise.shape)
+    
+    ## get the error of drilling area
+    # tmp = np.array([dist_pointwise > 0.00083]).ravel()
+    # c_points = dist_pointwise[tmp]
+    # print(c_points.shape)
+    # plt.subplot(1,2,1)
+    # sns.distplot(dist_pointwise, bins=40, hist=True, rug=False,
+    #              hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"},axlabel='m')
+    # plt.subplot(1,2,2)
+    # sns.distplot(c_points, bins=40, hist=True, rug=False,
+    #              hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"},axlabel='m')
+    # plt.show()
+    # print(np.mean(c_points), np.std(c_points))
+
+    print(np.min(dist_pointwise),np.max(dist_pointwise))
+    new_pcd = o3d.geometry.PointCloud()
+    new_pcd.points = o3d.utility.Vector3dVector(source_corr)
+    cmap_norm = mpl.colors.Normalize(vmin=np.min(dist_pointwise), vmax=0.0028)#np.max(dist_pointwise))
+    point_colors = plt.get_cmap('jet')(cmap_norm(dist_pointwise))[:, 0:3]
+    new_pcd.colors = o3d.utility.Vector3dVector(point_colors)
+    print(new_pcd.has_colors())
+    # pcd_source_tmp.colors = o3d.utility.Vector3dVector(np.ones((73162,3)))
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    vis.add_geometry(new_pcd)
+    vis.run()
+    return cmap_norm
     # draw_registration_result(source, target, np.identity(4))
+
+def colorbar(norm):
+
+    fig, ax = plt.subplots(figsize=(6,6))
+
+    fig.subplots_adjust(bottom=0.5)
+    
+    cbar = fig.colorbar(
+        mpl.cm.ScalarMappable(norm=norm,cmap='jet'),
+        cax=ax,
+        orientation="vertical")
+    cbar.ax.tick_params(labelsize=20)
+    cbar.set_label('mm', fontsize=20)
+    plt.show()
+
+
 if __name__ == '__main__':
     dirpath = sys.argv[1]
-    ph2pan = phantom_registration(dirpath)
+    # ph2pan, reg_p2p = phantom_registration(dirpath)
     # ph2pan = np.load('../params/phacon2pan.npy')
-    ph2pan[:3,3] = ph2pan[:3,3]*1000
+    # ph2pan[:3,3] = ph2pan[:3,3]*1000
     # print(ph2pan)
-    np.save('../params/phacon2pan_1028.npy', ph2pan)
+    # np.save('../params/phacon2pan_1028.npy', ph2pan)
 
+    pcd_source = o3d.io.read_point_cloud("../util/cropped_exp_3.ply")
     
+    # pcd_source = o3d.io.read_point_cloud("../util/cropped_exp_3_test.ply")
+     # # # convert mesh to point cloud and save
+    mesh = o3d.io.read_triangle_mesh("/home/shc/Documents/phacon_data/phacon_exp_3.stl")
+    pcd2 = o3d.geometry.PointCloud()
+    pcd2.points = mesh.vertices
+    pcd2.colors = mesh.vertex_colors
+    pcd2.normals = mesh.vertex_normals
+    pcd_path = '../data/phantom_point-cloud_data/phacon_exp_3.ply'
+    o3d.io.write_point_cloud(pcd_path, pcd2)
+    pcd_target = o3d.io.read_point_cloud(pcd_path)
+    # o3d.visualization.draw_geometries([pcd_target])
+    # ph2pan, reg_p2p = phantom_registration(dirpath, pcd_source, pcd_target)
+    # cmap_norm = eval_registration(reg_p2p, pcd_source, pcd_target)
+    cmap_norm = mpl.colors.Normalize(vmin=5.884951730050053e-03, vmax=2.867834215281021)
+    colorbar(cmap_norm)
+    
+    # 2.3181307950055933e-06 0.002865381950155596
+    # 5.9692170177387505e-06 0.0024547775807794805
