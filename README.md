@@ -4,22 +4,10 @@ Author: Ruixing Liang (rliang7@jh.edu) Hongchao Shu (hshu4@jhu.edu)
 
 ## Introduction
 
-This is Repo tailored for accurate Synchronization between simulation in Virtual Reality (VR) and Real world, which is tracked by optical tracker using Atracsys fusionTrack 500 and Microscope (Haag-Streit Allegra 500). This repo is initallized for Computer Integrated Surgery II in Johns Hopkins University Robotics Course will further optimized and incorporated in MICCAI submission open source repo subsequently. Please follow and star for tracking the status. This could also be seen as a pre-release of AMBF plugin for optical tracker extensions. 
+We present a digital twin framework for skull base surgery named Twin-S. It models, tracks and updates all critical components of skull-base surgeries in real-time. Moreover, we can further generate plothera-paired dataset where images of the surgical scene are paired with virtually generated labels. Through this pairing, we are able to reduce the cost of dataset labeling and avoid the sim-to-real transfer issue commonly faced by synthetic data.
 
-![](./Resources/Readme_1.png)
 
-##Status
-
-For now, we implemented and evaluated:
-
-### Registration Pipeline
-
-1. **Pivot Calibration**, **Geometry Generation** Functions to define concisely and compactly which only need marker information which is intended to expand usage to different platforms you may have in hand.
-2. **Camera Calibration** (Still Work in Progress), Early implementation using preliminary OpenCV API has been identified as one of the problem we have in progress, since we pursue the highest accuracy we could possibly get. **Stereo Camera Rectification** with evaluations has been implemented.
-3. **Fixed Transformation from Known Geometry to Phantom** or in other case your object of interest has been implement based on Open3D ICP API.
-4. **Hand Eye Calibration** (Still Work in Progress), Early implementations based on ETH Dual Quaternion Algorithm has been tested. Further results will be needed before our final version of update.
-5. **VR Set Up**(Still Work in Progress), Implementation based on AMBF framework and Pyvista has been tested, functional and refinement will be carried out before the release of first complete version.
-6. **Data Generation**(Still Work in Progress) AMBF based data generation will be introduced in final version submission. Evaluation on that would be released in related paper.
+![](./Resources/overview.png)
 
 ### Usage
 
