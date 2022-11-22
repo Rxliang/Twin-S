@@ -7,7 +7,6 @@ import rospy
 import message_filters
 from sensor_msgs.msg import CompressedImage, PointCloud2, PointField
 from geometry_msgs.msg import PoseStamped
-from generate_filtered_pcd import convert_rs_frames_to_pointcloud
 count = 0
 
 def callback(rimage, limage, segm, depth, pose_pan, pose_drill, pose_camhand, realsense):

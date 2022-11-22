@@ -92,10 +92,10 @@ def Analyze(dir1, dir2, dir5):
     for i in range(4):
         np.random.shuffle(points0[i])
 
-    for j in range(len(points1[0])):
-        dis_list0.append(np.linalg.norm(points0[0, j] - points0[1, j]))
-        dis_list0.append(np.linalg.norm(points0[1, j] - points0[2, j]))
-        dis_list0.append(np.linalg.norm(points0[2, j] - points0[3, j]))
+    for j in range(len(points0[0])):
+        dis_list0.append(np.linalg.norm(points0[0, j] - points0[1, j])-5)
+        dis_list0.append(np.linalg.norm(points0[1, j] - points0[2, j])-5)
+        # dis_list0.append(np.linalg.norm(points0[2, j] - points0[3, j]))
         # dis_list0.append(np.linalg.norm(points0[0, j]))
         # dis_list0.append(np.linalg.norm(points0[1, j]))
         # dis_list0.append(np.linalg.norm(points0[2, j]))
@@ -103,9 +103,9 @@ def Analyze(dir1, dir2, dir5):
     for i in range(4):
         np.random.shuffle(points1[i])
     for j in range(len(points1[0])):
-        dis_list1.append(np.linalg.norm(points1[0, j] - points1[1, j]))
-        dis_list1.append(np.linalg.norm(points1[1, j] - points1[2, j]))
-        dis_list1.append(np.linalg.norm(points1[2, j] - points1[3, j]))
+        dis_list1.append(np.linalg.norm(points1[0, j] - points1[1, j])-5)
+        dis_list1.append(np.linalg.norm(points1[1, j] - points1[2, j])-5)
+        # dis_list1.append(np.linalg.norm(points1[2, j] - points1[3, j]))
         # dis_list1.append(np.linalg.norm(points1[0, j]))
         # dis_list1.append(np.linalg.norm(points1[1, j]))
         # dis_list1.append(np.linalg.norm(points1[2, j]))
@@ -114,9 +114,9 @@ def Analyze(dir1, dir2, dir5):
     for i in range(4):
         np.random.shuffle(points2[i])
     for j in range(len(points2[0])):
-        dis_list2.append(np.linalg.norm(points2[0, j] - points2[1, j]))
-        dis_list2.append(np.linalg.norm(points2[1, j] - points2[2, j]))
-        dis_list2.append(np.linalg.norm(points2[2, j] - points2[3, j]))
+        dis_list2.append(np.linalg.norm(points2[0, j] - points2[1, j])-5)
+        dis_list2.append(np.linalg.norm(points2[1, j] - points2[2, j])-5)
+        # dis_list2.append(np.linalg.norm(points2[2, j] - points2[3, j]))
         # dis_list2.append(np.linalg.norm(points2[3, j]))
     dis_list2 = np.array(dis_list2)
     return dis_list0, dis_list1, dis_list2
@@ -129,15 +129,16 @@ if __name__ == '__main__':
     # total_list = np.hstack((2-dis_list1, 5-dis_list2))
     # x = np.array([i for i in range(150)])
     # plt.plot(x, dis_list1)
+    sns.set(font_scale=1.8)
     plt.subplot(1,3,1)
-    sns.distplot(dis_list0, bins=50, hist=True, kde=True, rug=False,
-                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"})
+    sns.distplot(dis_list0, bins=20, hist=True, rug=False,
+                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"},axlabel='mm')
     plt.subplot(1, 3, 2)
-    sns.distplot(dis_list1, bins=50, hist=True, kde=True, rug=False,
-                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"})
+    sns.distplot(dis_list1, bins=20, hist=True, kde=True, rug=False,
+                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"}, axlabel='mm')
     plt.subplot(1, 3, 3)
-    sns.distplot(dis_list2, bins=50, hist=True, kde=True, rug=False,
-                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"})
+    sns.distplot(dis_list2, bins=20, hist=True, kde=True, rug=False,
+                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"}, axlabel='mm')
 
     print('test1', np.mean(dis_list0), np.std(dis_list2))
     print('test2', np.mean(dis_list1), np.std(dis_list2))
