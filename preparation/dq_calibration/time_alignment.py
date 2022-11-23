@@ -1,9 +1,9 @@
 # Expect time stamped transformations
 # Output aligned and resampled poses
 
-from dq_calibration.quaternion import (angular_velocity_between_quaternions,
+from preparation.dq_calibration.quaternion import (angular_velocity_between_quaternions,
                         quaternions_interpolate, Quaternion)
-from dq_calibration.time_alignment_plotting_tools import (plot_results, plot_input_data,
+from preparation.dq_calibration.time_alignment_plotting_tools import (plot_results, plot_input_data,
                                            plot_time_stamped_poses,
                                            plot_angular_velocities)
 from scipy import signal

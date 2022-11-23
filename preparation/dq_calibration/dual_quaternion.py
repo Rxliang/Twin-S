@@ -3,7 +3,7 @@ from numbers import Number
 import numpy as np
 import numpy.testing as npt
 
-from dq_calibration.quaternion import Quaternion
+from preparation.dq_calibration.quaternion import Quaternion
 
 
 class DualQuaternion(object):

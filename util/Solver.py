@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
-from dataLoader import dataLoader
+# from dataLoader import dataLoader
+# from util.dataLoader import dataLoader
 from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
-
-ld = dataLoader()
+import cv2
+import os
+# ld = dataLoader()
 
 
 class solver:
@@ -86,6 +88,16 @@ class solver:
         trans = np.vstack((np.hstack((r, t_i_shaped)), np.array([0, 0, 0, 1])))
         return [r, t_i_shaped], trans
 
+    def trans2seven(self, data):
+        '''
+        transformation to Seven parameter
+        '''
+        R = data[:3, :3]
+        r_i = Rotation.from_matrix(R)
+        q = r_i.as_quat()
+        t = data[:3, 3]
+        return np.array([t[0],t[1],t[2],q[0],q[1],q[2],q[3]])
+
     def regPanel(self, csv_data):
         '''
         Registration for panel
@@ -139,6 +151,20 @@ class solver:
         inv_trans = np.vstack((np.hstack((R_new, t_new)), np.array([0,0,0,1])))
         return inv_trans
 
+    def rosmsg2quat(self, msg):
+        '''
+        transfer a rosmsg pose to seven params.
+        '''
+        t_x = msg.pose.position.x 
+        t_y = msg.pose.position.y 
+        t_z = msg.pose.position.z 
+        x = msg.pose.orientation.x
+        y = msg.pose.orientation.y
+        z = msg.pose.orientation.z
+        w = msg.pose.orientation.w
+        conv_quat = [t_x,t_y,t_z,x,y,z,w]
+        return conv_quat
+
     def trackTip(self, data, t_tip=np.array([-12.48857839 ,241.80863525 , 7.7726727])):
         '''
         The geometry used is geometryTry2
@@ -168,6 +194,36 @@ class solver:
         theta = np.arccos((np.trace(R) - 1) / 2)
         w_hat = (R - R.T) * theta / (2 * np.sin(theta))  # Skew symmetric matrix
         w = np.array([w_hat[2, 1], w_hat[0, 2], w_hat[1, 0]])  # [w1, w2, w3]
-
         return w
 
+    def img2video(self, path):
+         # cv record video
+        fps = 30
+        size = (1920, 1080)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        saveName = os.path.join(path)
+        videoWriter = cv2.VideoWriter(saveName, fourcc, fps, size)
+        for img in img_dir:
+            img_left = cv2.imread(img)
+            # get image index
+            idx = re.findall('\d+', str(f_left))[-1]
+
+            recImgL = cv2.remap(img_left, mapLx, mapLy, cv2.INTER_LINEAR)
+            recImgR = cv2.remap(img_right, mapRx, mapRy, cv2.INTER_LINEAR)
+
+        if leftOnly:
+            # cv2.imwrite(rectify_dir + f'/rectified_left/{idx}.jpeg', recImgL)
+            # print(f'Finish writing {idx}!')
+            # cv2.imshow('limg', recImgL)
+            videoWriter.write(recImgL)
+            print(f'finish rectification frame {idx}.')
+
+    def make_charuco_pattern(self, path):
+        charuco_pattern = np.zeros([88, 3])
+        count = 0
+        for i in range(11):
+            for j in range(8):
+                charuco_pattern[count] = np.array([i*15,j*15,0])
+                count += 1
+        # print(charuco_pattern)
+        charuco_pattern = np.save(path, charuco_pattern)

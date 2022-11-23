@@ -76,8 +76,8 @@ def findRectifiedCorners(rectify_dir, checkerboard=True):
                 print(f'>>>>>REVERSE {count}>>>>>')
                 imgpoints_right[count] = imgpoints_right[count][::-1]
             count += 1
-            np.save(rectify_dir + '/rectified_imgpoints_left', imgpoints_left)
-            np.save(rectify_dir + '/rectified_imgpoints_right', imgpoints_right)
+            np.save('./data/hand-eye_calibration_data/' + rectify_dir + '/rectified_imgpoints_left', imgpoints_left)
+            np.save('./data/hand-eye_calibration_data/' + rectify_dir + '/rectified_imgpoints_right', imgpoints_right)
     else:
         # ChAruco board variables
         CHARUCOBOARD_ROWCOUNT = 8
@@ -150,8 +150,8 @@ def findRectifiedCorners(rectify_dir, checkerboard=True):
                 print('no corners found in file', f_left)
                 # os.remove(f_left)
                 # os.remove(f_right)
-        np.save(rectify_dir + '/rectified_imgpoints_left', imgpoints_left)
-        np.save(rectify_dir + '/rectified_imgpoints_right', imgpoints_right)
+        np.save('./data/hand-eye_calibration_data/' + rectify_dir + '/rectified_imgpoints_left', imgpoints_left)
+        np.save('./data/hand-eye_calibration_data/' + rectify_dir + '/rectified_imgpoints_right', imgpoints_right)
 
 def rectifyStereo(rectify_dir, intrinsics_dir, leftOnly):
 
@@ -192,8 +192,8 @@ def rectifyStereo(rectify_dir, intrinsics_dir, leftOnly):
                                                d_r,
                                                R_r, P_r, imsize, cv2.CV_32FC1)
 
-    np.save(f'{rectify_dir}/Q', Q)
-    np.save(f'{rectify_dir}/P_r.npy', P_r)
+    np.save('./params/Q', Q)
+    np.save('./params/Q', P_r)
 
     for f_left, f_right in zip(imgs_left, imgs_right):
         img_left = cv2.imread(f_left)
@@ -215,8 +215,8 @@ def rectifyStereo(rectify_dir, intrinsics_dir, leftOnly):
 
 
 if __name__ == '__main__':
-    rectify_dir = 'Charuco_Calib_419'
-    intrinsic_dir = 'intrinsic_params_421'
+    rectify_dir = './data/hand-eye_calibration_data/Charuco_Calib_419'
+    intrinsic_dir = './params'
     rectifyStereo(rectify_dir, intrinsic_dir, leftOnly=False)
 
     # findRectifiedCorners(rectify_dir, checkerboard=True)
