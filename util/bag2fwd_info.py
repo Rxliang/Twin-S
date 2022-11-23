@@ -12,8 +12,8 @@ import argparse
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from PIL import Image
-from depthmap import SqueezedNorm
-from depthmap import rospc_to_o3dpc
+from util.show_depthmap import SqueezedNorm
+from util.show_depthmap import rospc_to_o3dpc
 import open3d
 from ros_tools import rostools
 
@@ -37,9 +37,6 @@ def initialization():
     parser.add_argument('--pose',dest="pose", help="Poses of optical tracking.", action='store_true')
     parser.add_argument('--sim',dest="sim", help="StereoL images of AMBF.", action='store_true')
 
-    # segm_topic = '/fwd_segm/compressed'
-    # depth_topic = '/fwd_depthData'
-    stereoL_topic = '/ambf/env/cameras/stereoL/ImageData/compressed'
     args = parser.parse_args()
     args.output_dir = args.bag_file[:-4]
 
@@ -104,7 +101,6 @@ def bag2images(args):
     start = time.time()
     img_sec_list_l, img_sec_list= [], []
     
-
     with rosbag.Bag(args.bag_file, 'r') as bag:
         if args.stereo:
             start = time.time()
@@ -128,14 +124,13 @@ def bag2images(args):
         print("Complete Saving")
         return img_sec_list
 
+
 def main():
     global args
     initialization()
     if args.pose:
         bag2csv(args)
     img_sec_list = bag2images(args)
-
-
 
 
 if __name__ == '__main__':
