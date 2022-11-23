@@ -11,8 +11,6 @@ import numpy as np
 from util.Solver import solver
 from util.dataLoader import dataLoader
 from natsort import natsorted
-from preparation.rectifyStereo import rectifyStereo
-from preparation.calibrate_stereo_chess import stereoCalibration
 import sys
 from cv2 import aruco
 from preparation.dq_calibration import handeye_calib_dq

@@ -92,7 +92,11 @@ def Analyze(dir1, dir2, dir5):
     for i in range(4):
         np.random.shuffle(points0[i])
 
+<<<<<<< HEAD
     for j in range(len(points1[0])):
+=======
+    for j in range(len(points0[0])):
+>>>>>>> f8c73ed2e48c7647ce8042010ac8bdf78fe03c4e
         dis_list0.append(np.linalg.norm(points0[0, j] - points0[1, j])-5)
         dis_list0.append(np.linalg.norm(points0[1, j] - points0[2, j])-5)
         # dis_list0.append(np.linalg.norm(points0[2, j] - points0[3, j]))
@@ -132,6 +136,7 @@ if __name__ == '__main__':
     # total_list = np.hstack((2-dis_list1, 5-dis_list2))
     # x = np.array([i for i in range(150)])
     # plt.plot(x, dis_list1)
+<<<<<<< HEAD
 
     # plt.subplot(1,3,1)
     # sns.distplot(dis_list0, bins=50, hist=True, kde=True, rug=False,
@@ -150,6 +155,18 @@ if __name__ == '__main__':
     plt.subplot(1, 1, 1)
     sns.distplot(dis_list, bins=30, hist=True, kde=True, rug=False,
                  hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"})
+=======
+    sns.set(font_scale=1.8)
+    plt.subplot(1,3,1)
+    sns.distplot(dis_list0, bins=20, hist=True, rug=False,
+                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"},axlabel='mm')
+    plt.subplot(1, 3, 2)
+    sns.distplot(dis_list1, bins=20, hist=True, kde=True, rug=False,
+                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"}, axlabel='mm')
+    plt.subplot(1, 3, 3)
+    sns.distplot(dis_list2, bins=20, hist=True, kde=True, rug=False,
+                 hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"}, axlabel='mm')
+>>>>>>> f8c73ed2e48c7647ce8042010ac8bdf78fe03c4e
 
     print('test1', np.mean(dis_list), np.std(dis_list),np.max(dis_list))
     # print('test2', np.mean(dis_list1), np.std(dis_list2))

@@ -14,7 +14,7 @@ do
         rosbag record -O "$OPTARG" /atracsys/Surgical_Drill/measured_cp
         ;;
         ?)
-        echo "未知参数"
+        echo "unkown"
         exit 1;;
     esac
 done
