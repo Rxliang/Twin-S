@@ -306,6 +306,3 @@ if __name__ == '__main__':
     # cmap_norm = eval_registration(reg_p2p, pcd_source, pcd_target)
     cmap_norm = mpl.colors.Normalize(vmin=5.884951730050053e-03, vmax=2.867834215281021)
     colorbar(cmap_norm)
-    
-    # 2.3181307950055933e-06 0.002865381950155596
-    # 5.9692170177387505e-06 0.0024547775807794805
