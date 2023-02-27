@@ -1,6 +1,8 @@
 ## Using sksurgery pivot calibraiton
 import sys
 import os
+import matplotlib.pyplot as plt
+from scipy.spatial.transform import Rotation as R
 sys.path.append('../')
 sys.path.insert(0, '/home/shc/RoboMaster/util')
 import numpy as np
@@ -8,6 +10,7 @@ import random
 from scipy.optimize import least_squares
 from dataLoader import dataLoader
 import pandas as pd
+import seaborn as sns
 from Solver import solver
 sol = solver()
 ld = dataLoader()
@@ -346,6 +349,84 @@ def _replace_small_values(the_list, threshold=0.01, replacement_value=0.0):
     return rank
 
 
+def rotationEval(tracking_matrices):
+    errors = []
+    eulers = []
+    t_tip_eval = np.load('../params/t_tip_eval.npy')
+    p_eval = np.load('../params/p_eval.npy')
+    for T in tracking_matrices:
+        Rm = T[:3, :3]
+        t = T[:3, 3].reshape(3,1)
+        p_cal = Rm@t_tip_eval+t
+        error = np.linalg.norm(p_eval-p_cal)
+        if error < 1:
+            r = R.from_matrix(Rm)
+            euler = r.as_euler('xyz', degrees=True)
+            eulers.append(euler)
+            errors.append(error)
+    
+    eulers = np.array(eulers)
+    # plt.subplot(1,3,1)
+    # plt.xlabel('degrees')
+    # plt.ylabel('error in mm')
+    # # plt.hist(errors, bins=20, density=True)
+    # plt.scatter(eulers[:,0], errors)
+    # plt.subplot(1,3,2)
+    # plt.xlabel('degrees')
+    # plt.ylabel('error in mm')
+    # # plt.hist(errors, bins=20, density=True)
+    # plt.scatter(eulers[:,1], errors)
+    # plt.subplot(1,3,3)
+    # plt.xlabel('degrees')
+    # plt.ylabel('error in mm')
+    # # plt.hist(errors, bins=20, density=True)
+    # plt.scatter(eulers[:,2], errors)
+
+    # plt.subplot(1,2,1)
+    # plt.xlabel('degrees')
+    # plt.ylabel('error in mm')
+    # plt.scatter((np.linalg.norm(eulers, axis=1)-np.mean(np.linalg.norm(eulers, axis=1))), errors)
+    X = (np.linalg.norm(eulers, axis=1)-np.mean(np.linalg.norm(eulers, axis=1)))
+    sns.set(style="white", color_codes=True)
+    sns.jointplot(x=X, y=errors, kind='scatter', s=20, color='b')
+    sns.jointplot(x=X, y=errors, kind='kde', color="b")
+    # plt.title('rotational error')
+    # plt.subplot(1,2,2)
+    # plt.xlabel('error in mm')
+    # plt.ylabel('density')
+    # plt.hist(errors, bins=20, density=True)
+    # plt.title('distribution of tracking error impacted by rotation')
+    # plt.show()
+
+    from scipy.stats import chi2_contingency
+    from scipy.stats import chi2
+    from sklearn import preprocessing
+
+    X = X+25
+    # table = [[10,20,30],[6,9,17]]
+    rot_data =np.vstack([X, errors])
+    print(rot_data.shape)
+    table = rot_data
+    # print(table)
+    stat,p,dof,expected = chi2_contingency(table) # stat卡方统计值，p：P_value，dof 自由度，expected理论频率分布
+    print('dof=%d'%dof)
+    # print(expected)
+
+    prob = 0.95 # 选取95%置信度
+    critical = chi2.ppf(prob,dof)  # 计算临界阀值
+    print('probality=%.3f,critical=%.3f,stat=%.3f '%(prob,critical,stat))
+    if abs(stat)>=critical:
+        print('reject H0:Dependent')
+    else:
+        print('fail to reject H0:Independent')
+
+    alpha = 1-prob
+    print('significance=%.3f,p=%.3f'%(alpha,p))
+    if p<alpha:
+        print('reject H0:Dependent')
+    else:
+        print('fail to reject H0:Independent')
+
 if __name__ == '__main__':
     ld = dataLoader()
     pose_path = sys.argv[1]
@@ -360,8 +441,8 @@ if __name__ == '__main__':
         
         tracking_matrices[i, :, :] = T
 
-    # t_tip, p,  residual = pivot_calibration_aos(tracking_matrices)
-    # print('t_tip:', t_tip.T, "\np:", p.T, '\nresidual:', residual)
+    # rotationEval(tracking_matrices)
+
     t_tip, p,  residual = pivot_calibration_with_ransac(tracking_matrices,
                                   50,
                                   0.1,
@@ -370,16 +451,12 @@ if __name__ == '__main__':
                                   )
     print('t_tip:', t_tip.T, "\np:", p.T, '\nresidual:', residual)
 
-    np.save('../params/' + 't_tip.npy', t_tip)
-    # t_tip: [[-20.31321652 144.32784553  60.32107478]] 
-    # p: [[186.10411643 169.93587889 789.05871481]] 
-    # residual: 0.039474511611767314
-
-    # t_tip: [[-19.839008   143.51497723  60.25705424]] 
-    # p: [[251.22346195 168.24534563 791.33488021]] 
-    # residual: 0.03362991578325285
+    np.save('../params/' + 't_tip_0220.npy', t_tip)
+    # np.save('../params/' + 't_tip_eval.npy', t_tip)
+    # np.save('../params/' + 'p_eval.npy', p)
 
     # t_tip: [[  12.83037253 -168.75504173   56.3511996 ]] 
     # t_tip: [[  12.86018514 -171.22484561   56.06308705]] 1023
-
+    # t_tip: [[  14.60067685 -175.91251655   56.08049718]] 0205
+    # t_tip: [[  14.81979456 -174.32136278   57.22970104]] 0220
 

@@ -40,7 +40,8 @@ def depth_gen(depth_msg):
     :return: HxW, z-values
     """
     global pointcloud
-    [h, w] = [480, 640]
+    # [h, w] = [480, 640]
+    [h, w] = [360, 640]
     xyz_array = ros_numpy.point_cloud2.pointcloud2_to_array(depth_msg)
     xcol = xyz_array['x'][:, None] * scale
     ycol = xyz_array['y'][:, None] * scale
@@ -102,8 +103,8 @@ def loadDepthMap(depth_data):
         plt.axis('off')
         plt.show()
         break
-    open3d.io.write_point_cloud('exp_3.pcd', pcd)
-
+    # open3d.io.write_point_cloud('eeeeeeeeeeeeeeeexp.pcd', pcd)
+    
 if __name__ == '__main__':
     depth_data = []
     segm_data = []
@@ -113,4 +114,5 @@ if __name__ == '__main__':
                           [-1, 0, 0, 0], [0, 0, 0, 1]]) 
     listener()
     print('\nfinished!', f'{len(depth_data)} frames of depth map.')
-    loadDepthMap(depth_data)
+    # loadDepthMap(depth_data)
+    # sol.crop_Pointcloud('cropped_exp2.ply')

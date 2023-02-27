@@ -12,8 +12,6 @@ import argparse
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from PIL import Image
-from util.show_depthmap import SqueezedNorm
-from util.show_depthmap import rospc_to_o3dpc
 import open3d
 from ros_tools import rostools
 
@@ -27,7 +25,7 @@ def initialization():
     parser.add_argument('--stereo',dest="stereo", help="Stereo or monocular.", action='store_true')
     parser.add_argument('--limg',dest="limg", help="Left image only.", action='store_true')
     parser.add_argument('--panel',dest="pan", help="With phacon panel or not.", action='store_false')
-    parser.add_argument('--l_topic',dest="l_img_topic", help="Topic of left image.", default='/sync_limage/compressed', type=str)
+    parser.add_argument('--l_topic',dest="l_img_topic", help="Topic of left image.", default='/fwd_limage/compressed', type=str)
     parser.add_argument('--r_topic',dest="r_img_topic", help="Topic of right image.", default='/fwd_rimage/compressed', type=str)
     parser.add_argument('--segm',dest="segm", help="Segmentation masks.", action='store_true')
     parser.add_argument('--depth',dest="depth", help="Depth map.", action='store_true')

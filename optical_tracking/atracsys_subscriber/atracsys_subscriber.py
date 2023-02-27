@@ -15,7 +15,7 @@ from io import open
 bridge = CvBridge()
 
 
-OUTPUT_PATH = u'../data/phantom_point-cloud_data/sampled_pointcloud'
+OUTPUT_PATH = u'../../data/phantom_point-cloud_data/sampled_pointcloud'
 
 ###############################################################################
 
@@ -81,7 +81,7 @@ def inst_listener():
 
 def save_ros_msg_as_json(msg, path):
    # Save a string ROS message to JSON format
-    y = yaml.load(str(msg))
+    y = yaml.safe_load(str(msg))
     # print(y)
     with open( path, u"w") as f:
         json.dump(y, f, indent=4)

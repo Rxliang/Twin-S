@@ -103,6 +103,20 @@ class solver:
         return np.array([t[0],t[1],t[2],q[0],q[1],q[2],q[3]])
 
 
+    def trackTip(self, data, t_tip):
+        '''
+        '''
+        t_i = data[0:3]
+        q_i = data[3:7]
+        t_i_shaped = np.array(t_i.reshape(-1, 1))
+        r_i = Rotation.from_quat(q_i)
+        # print('t_tip', t_i_shaped.shape)
+        t_tip = np.reshape(t_tip,(-1, 1))
+        r = r_i.as_matrix()
+        p = r@t_tip + t_i_shaped
+        return p
+    
+
     def visulizePoints(self, point_array):
         x = point_array[:, 0]
         y = point_array[:, 1]

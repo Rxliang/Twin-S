@@ -172,7 +172,7 @@ def extractPose(args, cam_mtx, cam_dist):
     start = time.time()
     imgpts_dict = {}
     with rosbag.Bag(args.bag_file, 'r') as bag:
-        if args.stereo:
+        if args.bag_file:
             start = time.time()
             for topic, msg, t in bag.read_messages(topics = args.l_img_topic):
                 img_sec = '{:.5f}'.format(msg.header.stamp.to_sec())     

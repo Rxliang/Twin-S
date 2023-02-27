@@ -11,6 +11,7 @@ import tf
 from tf2_msgs.msg import TFMessage
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField, Image
+from PIL import Image
 import sensor_msgs.point_cloud2 as pc2
 import ros_numpy
 from ctypes import * # convert float to uint32
@@ -183,6 +184,9 @@ class rostools:
 
 
     def saveDepthImagesFromBag(bag, topics, scale, path):
+        '''
+        Save Pointcloud2 to depth map from AMBF. 
+        '''
         count = 0
         extrinsic = np.array([[0, 1, 0, 0], [0, 0, -1, 0],
                             [-1, 0, 0, 0], [0, 0, 0, 1]]) 

@@ -11,6 +11,8 @@ import os
 from natsort import natsorted
 import cv2
 import pickle
+import matplotlib.pyplot as plt
+import seaborn as sns
 from preparation.stereo_vision_pipeline import getChessPoses, draw, draw_full, chessboard_pose
 
 ld = dataLoader()
@@ -121,6 +123,13 @@ def backProject(timestamp_list, intrinsic_params_dir, W2E_list, org_imgpts_dict,
 
     videoWriter.release()
     print('Mean reProjection error:', np.mean(bp_error))
+    # sns.distplot(bp_error, bins=20, hist=True, kde=True, rug=False,
+    #              hist_kws={"color": "steelblue"}, kde_kws={"color": "purple"}, axlabel='pixels')
+    plt.hist(bp_error, bins=20, density=True)
+    plt.title('Distribution of RPE in each frame')
+    plt.xlabel('pixels')
+    plt.ylabel('density')
+    plt.show()
     return np.mean(bp_error)
 
 if __name__ == '__main__':

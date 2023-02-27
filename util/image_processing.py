@@ -4,7 +4,6 @@ from natsort import natsorted
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from util.show_depthmap import SqueezedNorm
 from matplotlib.widgets import Slider
 import matplotlib.pyplot as plt
 import matplotlib.colors
@@ -86,7 +85,7 @@ def creatFolder(output_dir):
         print("Create Folder at Designated Address...")
 
 
-# this function is for read image,the input is directory name
+##################################################################################
 def save_modified_images(limage_path, segm_path):
     global overlay_path, modified_limg_path, modified_seg_path
     array_of_img = [] # this if for store all of the image data
@@ -101,26 +100,22 @@ def save_modified_images(limage_path, segm_path):
         limg = cv2.imread(limage_path + "/" + file)
         segm = cv2.imread(segm_path + "/" + file)
         # new_limg = cv2.copyMakeBorder(limg, 230, 130, 0, 0, cv2.BORDER_CONSTANT)
-        new_limg = cv2.copyMakeBorder(limg, 200 , 160, 0 , 0, cv2.BORDER_CONSTANT)
+        new_limg = cv2.copyMakeBorder(limg, 180, 180, 0 , 0, cv2.BORDER_CONSTANT)
         new_limg = cv2.resize(new_limg, (640, 480))
         cv2.imwrite('segm.jpeg', segm)
-        segm = zoom_center(segm)
-        segm = segm[:480, :640]
 
-        overlap = cv2.addWeighted(new_limg, 0.8, segm, 0.4, 0)
+        overlap = cv2.addWeighted(new_limg, 0.5, segm, 0.5, 0)
         count += 1
         print(count)
-        # new_img = np.vstack([img, t])
-        # print(new_img.shape)
-        cv2.imshow('img', overlap)
-        # cv2.waitKey(0)
 
-        cv2.imwrite(overlay_path + "/" + file, overlap)
-        cv2.imwrite(modified_seg_path + "/" + file, segm)
-        cv2.imwrite(modified_limg_path + "/" + file, new_limg)
-        # break
-        # array_of_img.append(img)
-        # print(array_of_img)
+        cv2.imshow('img', overlap)
+        cv2.waitKey(0)
+
+        # cv2.imwrite(overlay_path + "/" + file, overlap)
+        # cv2.imwrite(modified_seg_path + "/" + file, segm)
+        # cv2.imwrite(modified_limg_path + "/" + file, new_limg)
+        break
+
 
 
 def modify_images(limage_path, segm_path):
@@ -145,7 +140,7 @@ def modify_images(limage_path, segm_path):
             limg = cv2.imread(limage_path + "/" + file)
             # print(limg.shape)
             segm = cv2.imread(segm_path + "/" + file)
-            # print(segm.shape)
+            print(segm.shape)
             x1 = cv2.getTrackbarPos('x1','Image Pad Modify')
             x2 = cv2.getTrackbarPos('x2','Image Pad Modify')
             y1 = cv2.getTrackbarPos('y1','Image Pad Modify')
@@ -157,7 +152,7 @@ def modify_images(limage_path, segm_path):
 
             # cv2.imwrite('segm.jpeg', segm)
             # segm = zoom_center(segm, 1.07)
-            segm = segm[:480, :640]
+            # segm = segm[:480, :640]
 
             overlap = cv2.addWeighted(new_limg, 0.5, segm, 0.5, 0)
             count += 1
@@ -185,6 +180,7 @@ def showDepth(scaled_depth, vmax, i):
     save_path = os.path.join(path, f'MR/{str(i)}.png')
     plt.savefig(save_path,  pad_inches=0, dpi=130,bbox_inches = 'tight')
     plt.close()
+
 
 def colorFilter(img_path):
     frame = cv2.imread(img_path)
@@ -287,17 +283,17 @@ def nothing(x):
 
 if __name__ == '__main__':
     sol = solver()
-    # path = '/home/shc/Desktop/data/1023/sync_phacon_4'
     path = sys.argv[1]
-    # path = '/home/shc/Desktop/data/1026/phacon_segm_depth_2'
     seg_path = os.path.join(path, 'segm_mask')
-    limg_path = os.path.join(path, 'modified_limg')
+    limg_path = os.path.join(path, 'limg')
     overlay_path = os.path.join(path, 'overlay')
     modified_seg_path = os.path.join(path, 'modified_segm_mask')
     modified_limg_path = os.path.join(path, 'modified_limg')
     MR_path = os.path.join(path, 'MR')
+    
+    save_modified_images(limg_path, seg_path)
+
     # modify_images(limg_path, seg_path)
-    # save_modified_images(limg_path, seg_path)
     # sol.img2video(path, 15, (640,480))
     # for i in range(630):
     #     img_1 = np.load(os.path.join(path, f'depth_map/{str(i)}.npy'))
@@ -312,6 +308,6 @@ if __name__ == '__main__':
     # 1 567 1556 2123 2554
     # 22 4 129
     # exp4: 0 278 725 1366 2205 2940
-    processMR(MR_path, seg_path, limg_path)
+    # processMR(MR_path, seg_path, limg_path)
     # acb = adjustCbar('jet')
     # acb.change_cbar()
