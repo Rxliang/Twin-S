@@ -1,16 +1,27 @@
-# RoboMaster
+# Twin-S
 
-Author: Ruixing Liang (rliang7@jh.edu) Hongchao Shu (hshu4@jhu.edu)
+This is the official code for our paper accepted at IPCAI 2023 and IJCARS - [Twin-S: A Digital Twin Paradigm for Skull Base Surgery](https://arxiv.org/abs/2211.11863).
 
-## Introduction
+![](Resources/demo_video.gif)
+
+If you find our project useful, please cite
+```
+@article{shu2022twin,
+  title={Twin-S: A Digital Twin for Skull-base Surgery},
+  author={Shu, Hongchao and Liang, Ruixing and Li, Zhaoshuo and Goodridge, Anna and Zhang, Xiangyu and Ding, Hao and Nagururu, Nimesh and Sahu, Manish and Creighton, Francis X and Taylor, Russell H and others},
+  journal={arXiv preprint arXiv:2211.11863},
+  year={2022}
+}
+```
+
+## Methodology
 
 We present a digital twin framework for skull base surgery named Twin-S. It models and tracks the critical
 components of skull-base surgery, including the surgical tool, patient anatomy,
 and surgical camera. Significantly, Twin-S updates patient anatomy to account
 for the real-world tool to tissue interactions in real-time.
 ![](Resources/overview_setup.png)
-## Demo
-![](Resources/demo_video.gif)
+
 ### Usage
 
 To run our project as a whole requires you to implement many adaptations based on your current hardware API. For instance, Camera Acquisition Pipelines and Optical Tracker may be faced a large fix if we are using different platform when you are pursuing the equivalent accuracy as we have evaluated.
@@ -43,9 +54,3 @@ make
 ```
 
 2. Set up the Communication between ROS nodes in .bashrc  
-
-  
-
-### Citation
-
-Please kindly wait until we have our results on our pub to cite our works. Thanks!
