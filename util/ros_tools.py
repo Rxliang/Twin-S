@@ -37,6 +37,10 @@ class rostools:
 
     def write_transformation_to_csv_file(self, bag_file, target_frame,
                                      csv_file_name):
+        '''
+        Read the tf from rosbag and write the poses into csv.
+        '''
+
         print("Loading tfs into Transformer...")
         bag = rosbag.Bag(bag_file)
 
@@ -165,6 +169,7 @@ class rostools:
         # return
         return open3d_cloud
 
+
     def saveImagesFromBag(self, bag, topics, img_sec_list, path):
         count = 0
         for topic, msg, t in bag.read_messages(topics):
@@ -219,3 +224,18 @@ class rostools:
             print(path +' '+ str(count))
             # np.save(os.path.join(path, str(count)), scaled_depth)
             count += 1
+
+
+    def rosmsg2quat(self, msg):
+            '''
+            transfer a rosmsg pose to seven params.
+            '''
+            t_x = msg.pose.position.x 
+            t_y = msg.pose.position.y 
+            t_z = msg.pose.position.z 
+            x = msg.pose.orientation.x
+            y = msg.pose.orientation.y
+            z = msg.pose.orientation.z
+            w = msg.pose.orientation.w
+            conv_quat = [t_x,t_y,t_z,x,y,z,w]
+            return conv_quat

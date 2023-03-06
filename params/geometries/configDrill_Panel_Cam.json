@@ -1,0 +1,18 @@
+/* -*- Mode: Javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+{
+    "tools":
+    [
+        {
+            "name": "Surgical drill",
+            "json-file": "geometryDrill.json"
+        },
+        {
+            "name": "Panel",
+            "json-file": "geometryPan.json"
+        },
+        {
+            "name": "Camera_hand",
+            "json-file": "geometryCam_hand.json"
+        }
+    ]
+}

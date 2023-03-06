@@ -22,13 +22,13 @@ OUTPUT_PATH = u'../../data/phantom_point-cloud_data/sampled_pointcloud'
 # Global variables
 img_save_counter = 0
 
-hmd_lock = threading.Lock()
-inst_lock = threading.Lock()
+base_lock = threading.Lock()
+tool_lock = threading.Lock()
 limg_lock = threading.Lock()
 rimg_lock = threading.Lock()
 
-hmd_msg = u""
-inst_msg = u""
+base_msg = u""
+tool_msg = u""
 limg_msg = CompressedImage()
 rimg_msg = CompressedImage()
 
@@ -36,30 +36,30 @@ rimg_msg = CompressedImage()
 
 # create a callback and listener (and lock) for each ros topic
 
-def hmd_callback(msg):
-    global run_save_path, img_save_counter, hmd_msg, hmd_lock
+def base_callback(msg):
+    global run_save_path_list, img_save_counter, base_msg, base_lock
     # print(u'msg',msg)
-    with hmd_lock:
+    with base_lock:
         # print("In Lock")
-        hmd_msg = msg
+        base_msg = msg
 
-def hmd_listener():
-    rospy.Subscriber(u"/atracsys/Panel/measured_cp", PoseStamped, hmd_callback)
+def base_listener():
+    rospy.Subscriber(u"/atracsys/Panel/measured_cp", PoseStamped, base_callback)
     rospy.spin()
 
-def inst_callback(msg):
-    global run_save_path, img_save_counter, inst_msg, inst_lock
+def tool_callback(msg):
+    global run_save_path_list, img_save_counter, tool_msg, tool_lock
     # print(u'msg',msg)
-    with inst_lock:
-        inst_msg = msg
+    with tool_lock:
+        tool_msg = msg
 
-def inst_listener():
-    rospy.Subscriber(u"/atracsys/Surgical_drill/measured_cp", PoseStamped, inst_callback)
+def tool_listener():
+    rospy.Subscriber(u"/atracsys/Pointer/measured_cp", PoseStamped, tool_callback)
     rospy.spin()
 
 #callback and listener for img topics
 # def limg_callback(msg):
-#     global run_save_path, img_save_counter, limg_msg, limg_lock
+#     global run_save_path_list, img_save_counter, limg_msg, limg_lock
 #     # print(u'msg',msg)
 #     with limg_lock:
 #         limg_msg = msg
@@ -69,7 +69,7 @@ def inst_listener():
 #     rospy.spin()
 
 # def rimg_callback(msg):
-#     global run_save_path, img_save_counter, rimg_msg, rimg_lock
+#     global run_save_path_list, img_save_counter, rimg_msg, rimg_lock
 #     # print(u'msg',msg)
 #     with rimg_lock:
 #         rimg_msg = msg
@@ -93,11 +93,11 @@ def save_ros_msg_as_json(msg, path):
 def save_all_ros_msg():
     global img_save_counter
 
-    with hmd_lock:
-        save_ros_msg_as_json(hmd_msg, os.path.join(run_save_path, "HMD_POSE"+str(img_save_counter)+".json"))
+    with base_lock:
+        save_ros_msg_as_json(base_msg, os.path.join(run_save_path_list[0], "BASE_POSE"+str(img_save_counter)+".json"))
 
-    with inst_lock: 
-        save_ros_msg_as_json(inst_msg, os.path.join(run_save_path, "INST_POSE"+str(img_save_counter)+".json"))
+    with tool_lock: 
+        save_ros_msg_as_json(tool_msg, os.path.join(run_save_path_list[1], "TOOL_POSE"+str(img_save_counter)+".json"))
 
     print("Saved capture ", img_save_counter)
     img_save_counter += 1
@@ -106,10 +106,10 @@ def save_all_ros_msg():
 #     global img_save_counter
 
 #     with rimg_lock:
-#         save_ros_msg_as_img(rimg_msg, os.path.join(run_save_path, "rimg"+str(img_save_counter)+".png"))
+#         save_ros_msg_as_img(rimg_msg, os.path.join(run_save_path_list, "rimg"+str(img_save_counter)+".png"))
 
 #     with limg_lock: 
-#         save_ros_msg_as_img(limg_msg, os.path.join(run_save_path, "limg"+str(img_save_counter)+".png"))
+#         save_ros_msg_as_img(limg_msg, os.path.join(run_save_path_list, "limg"+str(img_save_counter)+".png"))
 
 #     print("Saved capture ", img_save_counter)
 #     img_save_counter += 1
@@ -122,15 +122,18 @@ def create_unique_output_folder():
         os.makedirs(OUTPUT_PATH)
 
     counter = 1
-    subfolder_path = os.path.join(OUTPUT_PATH,"run_"+str(counter))
+    subfolder_path = os.path.join(OUTPUT_PATH,"phantom_"+str(counter))
     while os.path.isdir(subfolder_path):
-        subfolder_path = os.path.join(OUTPUT_PATH,"run_"+str(counter))
+        subfolder_path = os.path.join(OUTPUT_PATH,"phantom_"+str(counter))
         counter += 1
 
     os.makedirs(subfolder_path)
+    subsub_path_list = [os.path.join(subfolder_path,"base"), os.path.join(subfolder_path,"tool")]
+    if not os.path.isdir(subsub_path_list[0]):
+        os.makedirs(subsub_path_list[0])
+        os.makedirs(subsub_path_list[1])
 
-
-    return subfolder_path
+    return subsub_path_list
 
 
 def handle_mouse(event, x, y, flags, param):
@@ -147,11 +150,11 @@ if __name__ == u'__main__':
     rospy.init_node(u'atracsys_listener', anonymous=True)
 
     # ROS SUBSCRIBERS
-    sub1 = threading.Thread(target=hmd_listener)
+    sub1 = threading.Thread(target=base_listener)
     sub1.daemon = True
     sub1.start()
 
-    sub2 = threading.Thread(target=inst_listener)
+    sub2 = threading.Thread(target=tool_listener)
     sub2.daemon = True
     sub2.start()
 
@@ -163,7 +166,7 @@ if __name__ == u'__main__':
     # sub2.daemon = True
     # sub2.start()
 
-    run_save_path = create_unique_output_folder()
+    run_save_path_list = create_unique_output_folder()
 
     cv2.namedWindow(u'dummy window', cv2.WINDOW_AUTOSIZE | cv2.WINDOW_GUI_NORMAL )
     cv2.setMouseCallback(u'dummy window', handle_mouse)

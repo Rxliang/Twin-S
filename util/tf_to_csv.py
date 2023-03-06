@@ -107,10 +107,10 @@ if __name__ == '__main__':
   parser.add_argument(
       '--tf_target_frame', default='/atracsys/Camera_hand/measured_cp', help='Name of tf target frame.')
   parser.add_argument(
-      '--csv_output_file', required=True, help='Path to output csv file')
+      '--csv_output_file', help='Path to output csv file')
 
   args = parser.parse_args()
-  out_dir = args.bag[:-4] + args.csv_output_file
+  out_dir = args.bag[:-4] + '.csv' #args.csv_output_file
   print("tf_to_csv.py: export tf to csv from bag: ", args.bag, "...")
 
   write_transformation_to_csv_file(args.bag, args.tf_target_frame,

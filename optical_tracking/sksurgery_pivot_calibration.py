@@ -450,8 +450,8 @@ if __name__ == '__main__':
                                   early_exit=False
                                   )
     print('t_tip:', t_tip.T, "\np:", p.T, '\nresidual:', residual)
-
-    np.save('../params/' + 't_tip_0220.npy', t_tip)
+    save_name = sys.argv[2]
+    np.save('../params/' + str(save_name) + '.npy', t_tip)
     # np.save('../params/' + 't_tip_eval.npy', t_tip)
     # np.save('../params/' + 'p_eval.npy', p)
 
