@@ -96,7 +96,7 @@ def listener_2():
 ##########################################################################
 # Post optimization stable phantom with moving camera
 
-def callback_3(limage, rimage, pose_drill, pose_camhand, pose_pan):
+def callback_3(limage, rimage, pose_camhand, pose_pan):
     global count
     # Timestamp info
     img_sec = limage.header.stamp.secs
@@ -105,7 +105,7 @@ def callback_3(limage, rimage, pose_drill, pose_camhand, pose_pan):
     # Publish
     pub1.publish(limage)
     pub2.publish(rimage)
-    pub3.publish(pose_drill)
+    # pub3.publish(pose_drill)
     pub4.publish(pose_camhand)
     pub5.publish(pose_pan)
     count += 1
@@ -119,7 +119,7 @@ def listener_3():
     # Subscribers
     limage_sub = message_filters.Subscriber('/zedm/zed_node/left/image_rect_color/compressed', CompressedImage)
     rimage_sub = message_filters.Subscriber('/zedm/zed_node/right/image_rect_color/compressed', CompressedImage)
-    pose_drill_sub = message_filters.Subscriber('/atracsys/Surgical_drill/measured_cp', PoseStamped)
+    # pose_drill_sub = message_filters.Subscriber('/atracsys/Surgical_drill/measured_cp', PoseStamped)
     pose_camhand_sub = message_filters.Subscriber('/atracsys/Camera_hand/measured_cp', PoseStamped)
     pose_pan_sub = message_filters.Subscriber('/atracsys/Panel/measured_cp', PoseStamped)
 
@@ -127,11 +127,13 @@ def listener_3():
     # pub1 = rospy.Publisher('fwd_pointcloud', PointCloud2, queue_size=50)
     pub1 = rospy.Publisher('fwd_limage/compressed', CompressedImage, queue_size=50)
     pub2 = rospy.Publisher('fwd_rimage/compressed', CompressedImage, queue_size=50)
-    pub3 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
+    # pub3 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
     pub4 = rospy.Publisher('fwd_pose_camhand', PoseStamped, queue_size=50)
     pub5 = rospy.Publisher('fwd_pose_pan', PoseStamped, queue_size=50)
 
-    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, rimage_sub, pose_drill_sub, pose_camhand_sub, pose_pan_sub], 50, 0.5)
+    # ts = message_filters.ApproximateTimeSynchronizer([limage_sub, rimage_sub, pose_drill_sub, pose_camhand_sub, pose_pan_sub], 50, 0.5)
+    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, rimage_sub, pose_camhand_sub, pose_pan_sub], 50, 0.5)
+
     ts.registerCallback(callback_3)
 
     rospy.spin()
@@ -140,7 +142,7 @@ def listener_3():
 ##########################################################################
 # Post optimization stable phantom with moving camera
 
-def callback_4(limage, rimage, pose_drill, pose_camhand, pose_pan, pointcloud):
+def callback_4(limage, rimage, pose_camhand, pose_pan, pointcloud):
     global count
     # Timestamp info
     img_sec = limage.header.stamp.secs
@@ -149,7 +151,7 @@ def callback_4(limage, rimage, pose_drill, pose_camhand, pose_pan, pointcloud):
     # Publish
     pub1.publish(limage)
     pub2.publish(rimage)
-    pub3.publish(pose_drill)
+    # pub3.publish(pose_drill)
     pub4.publish(pose_camhand)
     pub5.publish(pose_pan)
     pub6.publish(pointcloud)
@@ -164,7 +166,7 @@ def listener_4():
     # Subscribers
     limage_sub = message_filters.Subscriber('/zedm/zed_node/left/image_rect_color/compressed', CompressedImage)
     rimage_sub = message_filters.Subscriber('/zedm/zed_node/right/image_rect_color/compressed', CompressedImage)
-    pose_drill_sub = message_filters.Subscriber('/atracsys/Surgical_drill/measured_cp', PoseStamped)
+    # pose_drill_sub = message_filters.Subscriber('/atracsys/Surgical_drill/measured_cp', PoseStamped)
     pose_camhand_sub = message_filters.Subscriber('/atracsys/Camera_hand/measured_cp', PoseStamped)
     pose_pan_sub = message_filters.Subscriber('/atracsys/Panel/measured_cp', PoseStamped)
     pointcloud_sub = message_filters.Subscriber('/zedm/zed_node/point_cloud/cloud_registered', PointCloud2)
@@ -173,13 +175,13 @@ def listener_4():
     # Publisher
     pub1 = rospy.Publisher('fwd_limage/compressed', CompressedImage, queue_size=50)
     pub2 = rospy.Publisher('fwd_rimage/compressed', CompressedImage, queue_size=50)
-    pub3 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
+    # pub3 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
     pub4 = rospy.Publisher('fwd_pose_camhand', PoseStamped, queue_size=50)
     pub5 = rospy.Publisher('fwd_pose_pan', PoseStamped, queue_size=50)
     pub6 = rospy.Publisher('fwd_pointcloud', PointCloud2, queue_size=50)
 
 
-    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, rimage_sub, pose_drill_sub, pose_camhand_sub, pose_pan_sub, pointcloud_sub], 50, 0.5)
+    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, rimage_sub, pose_camhand_sub, pose_pan_sub, pointcloud_sub], 50, 0.5)
     ts.registerCallback(callback_4)
 
     rospy.spin()

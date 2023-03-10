@@ -77,7 +77,7 @@ def callback(depth, segm):
     segm_mask = image_gen(segm) 
     segm_data.append(segm_mask)
 
-    pcd = rt.convertCloudFromRosToOpen3d(depth)
+    pcd = rt.rospc_to_o3dpc(depth)
     print(depth.header.stamp.secs)
 
 def listener():

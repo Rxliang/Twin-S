@@ -55,10 +55,10 @@ def bag2Pointcloud():
         count = 0
         start = time.time()
         for topic, depth_msg, t in bag.read_messages(args.ambf_pcd_topic):
-            ambf_pcd = rt.convertCloudFromRosToOpen3d(depth_msg)
+            ambf_pcd = rt.rospc_to_o3dpc(depth_msg)
             
             print(path[0] +' '+ str(count))
-            ambf_file_name = os.path.join(path[0], str(count)) + '.pcd'
+            ambf_file_name = os.path.join(path[0], str(count)) + '.ply'
             o3d.io.write_point_cloud(ambf_file_name, ambf_pcd)
             count += 1
             if count == 1:
@@ -67,14 +67,18 @@ def bag2Pointcloud():
 
         count = 0
         for topic, depth_msg, t in bag.read_messages(args.zed_pcd_topic):
-            zed_pcd = rt.convertCloudFromRosToOpen3d(depth_msg)
+            zed_pcd = rt.rospc_to_o3dpc(depth_msg)
             
-            print(path[1] +' '+ str(count))
-            zed_file_name = os.path.join(path[1], str(count)) + '.pcd'
-            o3d.io.write_point_cloud(zed_file_name, zed_pcd)
-            count += 1
+            R_zed2cv = np.array([[0,-1,0],[0,0,1],[-1,0,0]])
+            
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector((R_zed2cv@np.asarray(zed_pcd.points).transpose(-1,-2)).transpose(-1,-2))
 
-            o3d.visualization.draw_geometries([zed_pcd])
+            print(path[1] +' '+ str(count))
+            zed_file_name = os.path.join(path[1], str(count)) + '.ply'
+            o3d.io.write_point_cloud(zed_file_name, pcd)
+            count += 1
+            # o3d.visualization.draw_geometries([zed_pcd])
             
         end = time.time()
         print(end - start)
@@ -86,5 +90,16 @@ if __name__ == '__main__':
     sol = solver()
     rt = rostools()
     bridge = CvBridge()
-    bag2Pointcloud()
+    # bag2Pointcloud()
+    
+
+    # pointcloud_dir = '/home/shc/Desktop/data/0308/opti_3/zed_pointcloud/'
+    # save_dir = pointcloud_dir
+
+    # pointclouds = natsorted([os.path.join(pointcloud_dir, f) for f in os.listdir(pointcloud_dir) if ".ply" in f])
+    # for pointcloud in pointclouds:
+    #     print(pointcloud)
+    #     sol.crop_Pointcloud(pointcloud)
+        
+    sol.crop_Pointcloud("../data/phantom_point-cloud_data/phacon_exp_3.ply")
     

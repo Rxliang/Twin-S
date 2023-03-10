@@ -88,7 +88,7 @@ class rostools:
         '''
         Convert the datatype of point cloud from Open3D to ROS PointCloud2 (XYZRGB only)
         '''
-
+        
         # The data structure of each point in ros PointCloud2: 16 bits = x + y + z + rgb
         FIELDS_XYZ = [
             PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
@@ -123,51 +123,90 @@ class rostools:
         # create ros_cloud
         return pc2.create_cloud(header, fields, cloud_data)
 
-
-    def convertCloudFromRosToOpen3d(self, ros_cloud):
-
-        convert_rgbUint32_to_tuple = lambda rgb_uint32: (
-        (rgb_uint32 & 0x00ff0000)>>16, (rgb_uint32 & 0x0000ff00)>>8, (rgb_uint32 & 0x000000ff)
-        )
-        convert_rgbFloat_to_tuple = lambda rgb_float: convert_rgbUint32_to_tuple(
-            int(cast(pointer(c_float(rgb_float)), POINTER(c_uint32)).contents.value)
-        )
+    def rospc_to_o3dpc(self, rospc, remove_nans=False):
+        """ covert ros point cloud to open3d point cloud
+        Args: 
+            rospc (sensor.msg.PointCloud2): ros point cloud message
+            remove_nans (bool): if true, ignore the NaN points
+        Returns: 
+            o3dpc (open3d.geometry.PointCloud): open3d point cloud
+        """
+        field_names = [field.name for field in rospc.fields]
+        is_rgb = 'rgb' in field_names
+        cloud_array = ros_numpy.point_cloud2.pointcloud2_to_array(rospc).ravel()
+        if remove_nans:
+            mask = np.isfinite(cloud_array['x']) & np.isfinite(cloud_array['y']) & np.isfinite(cloud_array['z'])
+            cloud_array = cloud_array[mask]
+        if is_rgb:
+            cloud_npy = np.zeros(cloud_array.shape + (4,), dtype=np.float)
+        else: 
+            cloud_npy = np.zeros(cloud_array.shape + (3,), dtype=np.float)
         
-        # Get cloud data from ros_cloud
-        field_names=[field.name for field in ros_cloud.fields]
-        cloud_data = list(pc2.read_points(ros_cloud, skip_nans=True, field_names = field_names))
+        cloud_npy[...,0] = cloud_array['x']
+        cloud_npy[...,1] = cloud_array['y']
+        cloud_npy[...,2] = cloud_array['z']
+        o3dpc = open3d.geometry.PointCloud()
 
-        # Check empty
-        open3d_cloud = open3d.geometry.PointCloud()
-        if len(cloud_data)==0:
-            print("Converting an empty cloud")
-            return None
+        if len(np.shape(cloud_npy)) == 3:
+            cloud_npy = np.reshape(cloud_npy[:, :, :3], [-1, 3], 'F')
+        o3dpc.points = open3d.utility.Vector3dVector(cloud_npy[:, :3])
 
-        # Set open3d_cloud
-        if "rgb" in field_names:
-            IDX_RGB_IN_FIELD=3 # x, y, z, rgb
+        if is_rgb:
+            rgb_npy = cloud_array['rgb']
+            rgb_npy.dtype = np.uint32
+            r = np.asarray((rgb_npy >> 16) & 255, dtype=np.uint8)
+            g = np.asarray((rgb_npy >> 8) & 255, dtype=np.uint8)
+            b = np.asarray(rgb_npy & 255, dtype=np.uint8)
+            rgb_npy = np.asarray([r, g, b])
+            rgb_npy = rgb_npy.astype(np.float)/255
+            rgb_npy = np.swapaxes(rgb_npy, 0, 1)
+            o3dpc.colors = open3d.utility.Vector3dVector(rgb_npy)
+        return o3dpc
+
+    # def convertCloudFromRosToOpen3d(self, ros_cloud):
+
+    #     convert_rgbUint32_to_tuple = lambda rgb_uint32: (
+    #     (rgb_uint32 & 0x00ff0000)>>16, (rgb_uint32 & 0x0000ff00)>>8, (rgb_uint32 & 0x000000ff)
+    #     )
+    #     convert_rgbFloat_to_tuple = lambda rgb_float: convert_rgbUint32_to_tuple(
+    #         int(cast(pointer(c_float(rgb_float)), POINTER(c_uint32)).contents.value)
+    #     )
+        
+    #     # Get cloud data from ros_cloud
+    #     field_names=[field.name for field in ros_cloud.fields]
+    #     cloud_data = list(pc2.read_points(ros_cloud, skip_nans=True, field_names = field_names))
+
+    #     # Check empty
+    #     open3d_cloud = open3d.geometry.PointCloud()
+    #     if len(cloud_data)==0:
+    #         print("Converting an empty cloud")
+    #         return None
+
+    #     # Set open3d_cloud
+    #     if "rgb" in field_names:
+    #         IDX_RGB_IN_FIELD=3 # x, y, z, rgb
             
-            # Get xyz
-            scale = 1000
-            xyz = [(x,y,z) for x,y,z,rgb in cloud_data ] # (why cannot put this line below rgb?)
+    #         # Get xyz
+    #         scale = 1000
+    #         xyz = [(x,y,z) for x,y,z,rgb in cloud_data ] # (why cannot put this line below rgb?)
 
-            # Get rgb
-            # Check whether int or float
-            if type(cloud_data[0][IDX_RGB_IN_FIELD])==float: # if float (from pcl::toROSMsg)
-                rgb = [convert_rgbFloat_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
-            else:
-                rgb = [convert_rgbUint32_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
+    #         # Get rgb
+    #         # Check whether int or float
+    #         if type(cloud_data[0][IDX_RGB_IN_FIELD])==float: # if float (from pcl::toROSMsg)
+    #             rgb = [convert_rgbFloat_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
+    #         else:
+    #             rgb = [convert_rgbUint32_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
 
-            # combine
-            open3d_cloud.points = open3d.utility.Vector3dVector(np.array(xyz))
-            open3d_cloud.colors = open3d.utility.Vector3dVector(np.array(rgb)/255.0)
-            # print(open3d_cloud.points[200000])
-        else:
-            xyz = [(x,y,z) for x,y,z in cloud_data ] # get xyz
-            open3d_cloud.points = open3d.utility.Vector3dVector(np.array(xyz))
+    #         # combine
+    #         open3d_cloud.points = open3d.utility.Vector3dVector(np.array(xyz))
+    #         open3d_cloud.colors = open3d.utility.Vector3dVector(np.array(rgb)/255.0)
+    #         # print(open3d_cloud.points[200000])
+    #     else:
+    #         xyz = [(x,y,z) for x,y,z in cloud_data ] # get xyz
+    #         open3d_cloud.points = open3d.utility.Vector3dVector(np.array(xyz))
 
-        # return
-        return open3d_cloud
+    #     # return
+    #     return open3d_cloud
 
 
     def saveImagesFromBag(self, bag, topics, img_sec_list, path):
