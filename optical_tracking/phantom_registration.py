@@ -348,7 +348,7 @@ if __name__ == '__main__':
     # ph2pan = np.load('../params/phacon2pan.npy')
     ph2pan[:3,3] = ph2pan[:3,3]*1000
     print(ph2pan)
-    np.save('../params/phacon2pan_0227.npy', ph2pan)
+    # np.save('../params/phacon2pan_0227.npy', ph2pan)
 
 
 
