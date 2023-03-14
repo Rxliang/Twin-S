@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/home/shc/RoboMaster/util')
+sys.path.insert(0, '/home/shc/Twin-S/util')
 from dataLoader import dataLoader
 from Solver import solver
 
@@ -18,7 +18,7 @@ def getNdarray(pose_path):
     # print(csv_data.head())
     num_frames = len(csv_data)
     translation_array = []
-    pivot = np.load('/home/shc/RoboMaster/params/t_tip.npy')
+    pivot = np.load('/home/shc/Twin-S/params/t_tip.npy')
     for i in range(num_frames):
         # quaternion = ld.getToolPose(i, csv_data)
         seven_params = ld.getToolPose(i, pose_path)
@@ -69,7 +69,7 @@ def axisCalibration(pose_path, translation_array):
     num_frames = len(csv_data)
     translation_array = []
     # pivot = np.array([[12.83037253, -168.75504173, 56.3511996]]).T ##17
-    pivot = np.load('/home/shc/RoboMaster/params/t_tip.npy')
+    pivot = np.load('/home/shc/Twin-S/params/t_tip.npy')
     for i in range(num_frames):
         # quaternion = ld.getToolPose(i, csv_data)
         seven_params = ld.getToolPose(i, pose_path)

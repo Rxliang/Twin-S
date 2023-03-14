@@ -213,7 +213,7 @@ import cv2
 import shutil
 import numpy as np
 import sys
-sys.path.insert(0, '/home/shc/RoboMaster/util')
+sys.path.insert(0, '/home/shc/Twin-S/util')
 from Solver import solver
 from dataLoader import dataLoader
 # from stereo_vision_pipeline import getChessPoses, Q_intrinsic, draw, draw_full

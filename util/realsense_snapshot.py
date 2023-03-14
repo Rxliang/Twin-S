@@ -66,7 +66,7 @@ def convert_rs_frames_to_pointcloud(rs_frames):
 
 rs_frames = pipeline.wait_for_frames()
 pcd = convert_rs_frames_to_pointcloud(rs_frames)
-# name = "/home/shc/RoboMaster/util/snapshot_5.pcd"
+# name = "/home/shc/Twin-S/util/snapshot_5.pcd"
 # save path
 name = sys.argv[1]
 o3d.io.write_point_cloud(name, pcd)

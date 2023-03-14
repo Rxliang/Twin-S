@@ -11,7 +11,7 @@ from scipy.spatial.transform import Rotation as Rot
 from cv2 import aruco
 import sys
 sys.path.append('../')
-sys.path.insert(0, '/home/shc/RoboMaster/util')
+sys.path.insert(0, '/home/shc/Twin-S/util')
 from Solver import solver
 from ros_tools import rostools
 

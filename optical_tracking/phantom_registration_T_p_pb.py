@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../')
-sys.path.insert(0, '/home/shc/RoboMaster/util')
+sys.path.insert(0, '/home/shc/Twin-S/util')
 import numpy as np
 import copy
 import copy

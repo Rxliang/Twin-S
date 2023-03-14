@@ -188,6 +188,43 @@ def listener_4():
     rospy.on_shutdown(my_shutdown_hook)
 
 ##########################################################################
+# Sync recorded images with the sim scene
+
+def callback_5(limage, segm, sim):
+    global count
+    # Timestamp info
+    img_sec = limage.header.stamp.secs
+    print('img_sec:',img_sec)
+
+    # Publish
+    pub1.publish(limage)
+    pub2.publish(segm)
+    pub3.publish(sim)
+    count += 1
+
+def listener_5():
+    global pub1, pub2, pub3
+    # Initialize ROS node
+    rospy.init_node('image_extract_node', anonymous=True)
+
+    # Subscribers
+    limage_sub = message_filters.Subscriber('/pss_limage/compressed', CompressedImage)
+    segm_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/ImageData/compressed', CompressedImage)
+    sim_sub = message_filters.Subscriber('/ambf/env/cameras/stereoL/ImageData/compressed', CompressedImage)
+
+    # Publisher
+    pub1 = rospy.Publisher('sync_limage/compressed', CompressedImage, queue_size=50)
+    pub2 = rospy.Publisher('sync_segm/compressed', CompressedImage, queue_size=50)
+    pub3 = rospy.Publisher('sync_sim/compressed', CompressedImage, queue_size=50)
+
+
+    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, segm_sub, sim_sub], 50, 0.5)
+    ts.registerCallback(callback_5)
+
+    rospy.spin()
+    rospy.on_shutdown(my_shutdown_hook)
+
+##########################################################################
 
 def my_shutdown_hook():
     print("in my_shutdown_hook")
@@ -199,6 +236,7 @@ def initialization():
     parser.add_argument('--eval',dest="eval", help="Evaluate the drill pose projection.", action='store_true')
     parser.add_argument('--post',dest="post", help="Post optimization stable phantom with moving camera.", action='store_true')
     parser.add_argument('--post_depth',dest="post_depth", help="Post optimization stable phantom with moving camera, with ZED pointcloud.", action='store_true')
+    parser.add_argument('--sync_sim',dest="sync_sim", help="Sync recorded images with the simulation scene.", action='store_true')
 
     args = parser.parse_args()
 
@@ -214,3 +252,5 @@ if __name__ == '__main__':
         listener_3()
     elif args.post_depth:
         listener_4()
+    elif args.sync_sim:
+        listener_5()

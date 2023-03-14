@@ -100,8 +100,7 @@ def save_modified_images(limage_path, segm_path):
         limg = cv2.imread(limage_path + "/" + file)
         segm = cv2.imread(segm_path + "/" + file)
         # new_limg = cv2.copyMakeBorder(limg, 230, 130, 0, 0, cv2.BORDER_CONSTANT)
-        new_limg = cv2.copyMakeBorder(limg, 180, 180, 0 , 0, cv2.BORDER_CONSTANT)
-        new_limg = cv2.resize(new_limg, (640, 480))
+        new_limg = cv2.resize(limg, (640, 360))
         cv2.imwrite('segm.jpeg', segm)
 
         overlap = cv2.addWeighted(new_limg, 0.5, segm, 0.5, 0)
@@ -114,7 +113,7 @@ def save_modified_images(limage_path, segm_path):
         # cv2.imwrite(overlay_path + "/" + file, overlap)
         # cv2.imwrite(modified_seg_path + "/" + file, segm)
         # cv2.imwrite(modified_limg_path + "/" + file, new_limg)
-        break
+        # break
 
 
 

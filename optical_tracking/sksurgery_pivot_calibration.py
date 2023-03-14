@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 sys.path.append('../')
-sys.path.insert(0, '/home/shc/RoboMaster/util')
+sys.path.insert(0, '/home/shc/Twin-S/util')
 import numpy as np
 import random
 from scipy.optimize import least_squares

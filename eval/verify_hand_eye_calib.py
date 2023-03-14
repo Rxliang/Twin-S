@@ -3,7 +3,7 @@ import sys
 import argparse
 from glob import glob
 sys.path.append('../')
-sys.path.insert(0, '/home/shc/RoboMaster/util')
+sys.path.insert(0, '/home/shc/Twin-S/util')
 import numpy as np
 from dataLoader import dataLoader
 from Solver import solver
