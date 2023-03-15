@@ -88,7 +88,6 @@ def chessboard_pose(img, timestamp, cam_mtx, cam_dist, objp, width, pattern=(7, 
 def Charuco_pose(img, timestamp, cam_mtx, cam_dist, width, pattern):
     global args
     ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_4X4_100)
-    
     # Parameters for the charuco board
     CHARUCO_BOARD = aruco.CharucoBoard_create(
         squaresX=pattern[0]+1,
@@ -116,7 +115,6 @@ def Charuco_pose(img, timestamp, cam_mtx, cam_dist, width, pattern):
         markerIds=ids,
         image=gray,
         board=CHARUCO_BOARD)
-
     # Refine
     charucoCorners = cv2.cornerSubPix(gray, charucoCorners, (11, 11), (-1, -1), criteria)
     # Draw corners
@@ -142,7 +140,7 @@ def Charuco_pose(img, timestamp, cam_mtx, cam_dist, width, pattern):
         return None, None, None
 
 
-def getChessPoses(img, timestamp, cam_mtx, cam_dist, charuco, pattern=(7, 10), width=2):
+def getChessPoses(img, timestamp, cam_mtx, cam_dist, charuco, pattern=(7, 10), width=15):
 
     objp = np.zeros((pattern[0] * pattern[1], 3), np.float32)
 

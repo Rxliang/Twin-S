@@ -160,4 +160,4 @@ if __name__ == '__main__':
     T_p_pb[:3,3] = T_p_pb[:3,3]*1000
 
     print(T_p_pb)
-    np.save('../params/phacon2pan_0227.npy', T_p_pb)
+    np.save('../params/phacon2pan.npy', T_p_pb)
