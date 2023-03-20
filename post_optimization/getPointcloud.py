@@ -69,17 +69,22 @@ def bag2Pointcloud():
         for topic, depth_msg, t in bag.read_messages(args.zed_pcd_topic):
             zed_pcd = rt.rospc_to_o3dpc(depth_msg)
             
-            R_zed2cv = np.array([[0,-1,0],[0,0,1],[-1,0,0]])
+            R_zed2cv = np.array([[0,-1,0],[0,0,-1],[1,0,0]])
             
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector((R_zed2cv@np.asarray(zed_pcd.points).transpose(-1,-2)).transpose(-1,-2))
+            # pcd = o3d.geometry.PointCloud()
+            zed_pcd.points = o3d.utility.Vector3dVector((R_zed2cv@np.asarray(zed_pcd.points).transpose(-1,-2)).transpose(-1,-2))
 
             print(path[1] +' '+ str(count))
-            zed_file_name = os.path.join(path[1], str(count)) + 'test.ply'
-            o3d.io.write_point_cloud(zed_file_name, pcd)
+            zed_file_name = os.path.join(path[1], str(count)) + '.ply'
+            o3d.io.write_point_cloud(zed_file_name, zed_pcd)
             count += 1
-            pcd = o3d.io.read_point_cloud(zed_file_name)
-            o3d.visualization.draw_geometries([pcd])
+            # zed_pcd = o3d.io.read_point_cloud(zed_file_name)
+            # mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
+            # size=0.1, origin=[0, 0, 0])
+            # o3d.visualization.draw_geometries([zed_pcd, mesh_frame], zoom=0.4459,
+            #                                     front=[0.0, 0.0, -1],
+            #                                     lookat=[0, 0, 0],
+            #                                     up=[-0.3402, -0.9189, -0.1996])
             
         end = time.time()
         print(end - start)
