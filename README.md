@@ -64,4 +64,4 @@ make
 3. Perform pivot calibration and save the tip.
 
 ```bash
-./pivot_calibration.sh -p ~/Desktop/0410/pointer_pivot_ -s test -t /atracsys/Pointer/measured_cp
+./pivot_calibration.sh -p <$path> -s <$save_name> -t <$topic>
