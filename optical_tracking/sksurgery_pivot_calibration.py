@@ -438,7 +438,6 @@ if __name__ == '__main__':
         # quaternion = ld.getToolPose(i, csv_data)
         quaternion = ld.getToolPose(i, pose_path)
         _, T = sol.seven2trans(quaternion)
-        
         tracking_matrices[i, :, :] = T
 
     # rotationEval(tracking_matrices)

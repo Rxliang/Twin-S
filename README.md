@@ -54,3 +54,14 @@ make
 ```
 
 2. Set up the Communication between ROS nodes in .bashrc  
+
+**Pivot Calibration**
+
+1. Record the ROS bag of pivot tool's poses.
+
+2. Load the poses from bag to csv.
+
+3. Perform pivot calibration and save the tip.
+
+```bash
+./pivot_calibration.sh -p ~/Desktop/0410/pointer_pivot_ -s test -t /atracsys/Pointer/measured_cp

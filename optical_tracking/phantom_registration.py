@@ -30,17 +30,17 @@ def visulizePoints(point_array):
     plt.show()
 
 
-def draw_registration_result(source, target, transformation):
-    source_temp = copy.deepcopy(source)
-    target_temp = copy.deepcopy(target)
-    source_temp.paint_uniform_color([1, 0.706, 0])
-    target_temp.paint_uniform_color([0, 0.651, 0.929])
-    source_temp.transform(transformation)
-    o3d.visualization.draw_geometries([source_temp, target_temp],
-                                      zoom=0.4459,
-                                      front=[0.9288, -0.2951, -0.2242],
-                                      lookat=[1.6784, 2.0612, 1.4451],
-                                      up=[-0.3402, -0.9189, -0.1996])
+# def draw_registration_result(source, target, transformation):
+#     source_temp = copy.deepcopy(source)
+#     target_temp = copy.deepcopy(target)
+#     source_temp.paint_uniform_color([1, 0.706, 0])
+#     target_temp.paint_uniform_color([0, 0.651, 0.929])
+#     source_temp.transform(transformation)
+#     o3d.visualization.draw_geometries([source_temp, target_temp],
+#                                       zoom=0.4459,
+#                                       front=[0.9288, -0.2951, -0.2242],
+#                                       lookat=[1.6784, 2.0612, 1.4451],
+#                                       up=[-0.3402, -0.9189, -0.1996])
 
 
 def preprocess_point_cloud(pcd, voxel_size):
@@ -120,7 +120,7 @@ def pick_points(pcd):
 def manual_registration(source, target):
 
     print("Visualization of two point clouds before manual alignment")
-    draw_registration_result(source, target, np.identity(4))
+    # draw_registration_result(source, target, np.identity(4))
 
     # pick points from two point clouds and builds correspondences
     picked_id_source = pick_points(source)
@@ -154,7 +154,7 @@ def phantom_registration(dirpath):
     op2drill_array = ld.loadMaualPointCloud(dirpath, 'tool')
     _, op2pan = sol.seven2trans(op2pan_array[10])
 
-    t_tip = np.load('../params/pointer_tip.npy') / 1000
+    t_tip = np.load('../params/pointer_tip_0410.npy') / 1000
     print('t_tip:', t_tip)
     for i in range(len(op2drill_array)):
         point = sol.trackTip(op2drill_array[i], t_tip).T

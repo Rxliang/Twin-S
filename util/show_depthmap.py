@@ -71,8 +71,9 @@ def my_shutdown_hook():
 def callback(depth, segm):
     global depth_data, segm_data, extrinsic, scale, pcd
 
-    scaled_depth = depth_gen(depth)
-    depth_data.append(scaled_depth)
+    # scaled_depth = depth_gen(depth)
+    scaled_depth = rt.rospc_to_o3dpc(depth)
+    # depth_data.append(scaled_depth)
 
     segm_mask = image_gen(segm) 
     segm_data.append(segm_mask)

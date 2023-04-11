@@ -70,6 +70,7 @@ def alpha_o(path):
         load_dict = json.load(load_f)
     points = np.zeros([4, 3])
     points_dis = np.zeros(4)
+   
     for i in range(4):
         points[i, 0] = load_dict['fiducials'][i]['x']
         points[i, 1] = load_dict['fiducials'][i]['y']
@@ -145,14 +146,17 @@ if __name__ == '__main__':
     R_o_db = np.identity(3)
     R_d_p = R_MD
     R_p_d = R_d_p.T
-    alpha_pb_p = np.array([[1*3.14/180], [0], [0]]) # ICP # important for rotation
+    alpha_pb_p = np.array([[0.2*3.14/180], [0], [0]]) # ICP # important for rotation
     alpha_o_pb = alpha_o('../params/geometries/geometryPan.json')
     alpha_o_db = alpha_o('../params/geometries/geometryDrill.json')
-    alpha_db_d = np.array([[1*3.14/180], [0.], [0.0]]) # align_vector nan #important for rotation and translation
+    alpha_db_d = np.array([[0.2*3.14/180], [0.], [0.0]]) # align_vector nan #important for rotation and translation
     res_alpha = alpha_dp(R_pb_p, R_o_pb, R_o_db, R_d_p, alpha_pb_p, alpha_o_pb, alpha_o_db, alpha_db_d)
-    for i in res_alpha:
-        print(np.linalg.norm(i)*180/3.14, '------------')
-    print(np.linalg.norm(sum(res_alpha)))
+    print('alpha terms:')
+    sum_alpha = 0
+    for index, i in enumerate(res_alpha):
+        print(f'term {index+1}:', np.linalg.norm(i)*180/3.14, '\n------------')
+        sum_alpha += np.linalg.norm(i)*180/3.14
+    print('Sum alpha error:', sum_alpha, '\n------------')
 
     R_pb_p = R_MD
     R_o_pb = np.identity(3)
@@ -168,7 +172,9 @@ if __name__ == '__main__':
     epsilon_o_db = np.array([[0.08], [0], [0]])
     res_epsilon = epsilon_dp(R_pb_p, R_o_pb, R_o_db, R_db_d, R_p_d, t_pb_p, t_o_pb, t_o_db, t_db_d, epsilon_pb_p, epsilon_o_pb, epsilon_db_d,
                epsilon_o_db, alpha_o_pb, alpha_o_db, alpha_db_d)
-    for i in res_epsilon:
-        print(np.linalg.norm(i),'------------')
-    print(sum(res_epsilon))
-    print(np.linalg.norm(sum(res_epsilon)))
+    print('epsilon terms:')
+    sum_epsilon = 0
+    for index, i in enumerate(res_epsilon):
+        print(f'term {index+1}:', np.linalg.norm(i),'\n------------')
+        sum_epsilon += np.linalg.norm(i)
+    print('Sum epsilon error:',sum_epsilon, '\n------------')
