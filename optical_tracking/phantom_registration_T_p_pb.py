@@ -91,14 +91,14 @@ def phantom_registration(dirpath):
     T_o_pb_array = ld.loadMaualPointCloud(dirpath, 'base')
     T_o_t_array = ld.loadMaualPointCloud(dirpath, 'tool')
     
-    t_tip = np.load('../params/pointer_tip_0410.npy') / 1000
+    t_tip = np.load('../params/pointer_tip_0411.npy') / 1000
+    # t_tip = np.load('../params/pointer_tip_0410.npy') / 1000
     print(t_tip)
     for i in range(len(T_o_t_array)):
         _, T_o_pb = sol.seven2trans(T_o_pb_array[i])
         _, T_o_t = sol.seven2trans(T_o_t_array[i])
         T_pb_o = sol.invTransformation(T_o_pb)
         T_pb_t = T_pb_o@T_o_t
-        print(np.linalg.norm(T_pb_t[:3,3]))
         point = T_pb_t[:3, :3]@t_tip + T_pb_t[:3, 3, None]
         point = point.reshape(1,-1)
         # point = sol.trackTip(T_o_t_array[i], t_tip).T
@@ -111,9 +111,9 @@ def phantom_registration(dirpath):
     pcd.points = o3d.utility.Vector3dVector(point_cloud)
     pcd_source = pcd
     # pcd_source = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/sampled_0410.ply")
-    # pcd_target = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_exp_3.ply")
-    # pcd_target = pcd_target.voxel_down_sample(voxel_size=0.001)
-    pcd_target = o3d.io.read_point_cloud('/home/shc/Documents/phacon_data/phacon_0314/phacon_0314_ds.ply')
+    pcd_target = o3d.io.read_point_cloud("../data/phantom_point-cloud_data/phacon_exp_3.ply")
+    pcd_target = pcd_target.voxel_down_sample(voxel_size=0.001)
+    # pcd_target = o3d.io.read_point_cloud('/home/shc/Documents/phacon_data/phacon_0314/phacon_0314_ds.ply')
     # o3d.visualization.draw_geometries([pcd_target, pcd_source])
     
     voxel_size=0.05
@@ -155,4 +155,4 @@ if __name__ == '__main__':
     T_p_pb[:3,3] = T_p_pb[:3,3]*1000
 
     print('Pan to phacon:', np.linalg.norm(T_p_pb[:3, 3]))
-    np.save('../params/phacon2pan_4.npy', T_p_pb)
+    np.save('../params/phacon2pan_0411.npy', T_p_pb)

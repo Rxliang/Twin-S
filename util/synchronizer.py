@@ -213,8 +213,8 @@ def listener_5():
     limage_sub = message_filters.Subscriber('/pss_limage/compressed', CompressedImage)
     segm_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/ImageData/compressed', CompressedImage)
     pcd_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/DepthData', PointCloud2)
-    pose_camhand_sub = message_filters.Subscriber('/pss_pose_pan', PoseStamped)
-    pose_pan_sub = message_filters.Subscriber('/pss_pose_camhand', PoseStamped)
+    pose_camhand_sub = message_filters.Subscriber('/pss_pose_camhand', PoseStamped)
+    pose_pan_sub = message_filters.Subscriber('/pss_pose_pan', PoseStamped)
 
     # Publisher
     pub1 = rospy.Publisher('/sync_limage/compressed', CompressedImage, queue_size=50)
@@ -230,6 +230,50 @@ def listener_5():
     rospy.on_shutdown(my_shutdown_hook)
 
 ##########################################################################
+# Sync recorded images with the sim scene
+
+def callback_6(limage, segm, pcd, zed_pcd, camhand_pose, pan_pose):
+    global count
+    # Timestamp info
+    img_sec = limage.header.stamp.secs
+    print('img_sec:',img_sec)
+
+    # Publish
+    pub1.publish(limage)
+    pub2.publish(segm)
+    pub3.publish(pcd)
+    pub4.publish(camhand_pose)
+    pub5.publish(pan_pose)
+    pub6.publish(zed_pcd)
+    count += 1
+
+def listener_6():
+    global pub1, pub2, pub3, pub4, pub5, pub6
+    # Initialize ROS node
+    rospy.init_node('image_extract_node', anonymous=True)
+
+    # Subscribers
+    limage_sub = message_filters.Subscriber('/pss_limage/compressed', CompressedImage)
+    segm_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/ImageData/compressed', CompressedImage)
+    pcd_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/DepthData', PointCloud2)
+    pose_camhand_sub = message_filters.Subscriber('/pss_pose_camhand', PoseStamped)
+    pose_pan_sub = message_filters.Subscriber('/pss_pose_pan', PoseStamped)
+    zed_pcd_sub = message_filters.Subscriber('/pss_pointcloud', PointCloud2)
+
+    # Publisher
+    pub1 = rospy.Publisher('/sync_limage/compressed', CompressedImage, queue_size=50)
+    pub2 = rospy.Publisher('/sync_segm/compressed', CompressedImage, queue_size=50)
+    pub3 = rospy.Publisher('/sync_pcd/DepthData', PointCloud2, queue_size=50)
+    pub4 = rospy.Publisher('/sync_pose_camhand', PoseStamped, queue_size=50)
+    pub5 = rospy.Publisher('/sync_pose_pan', PoseStamped, queue_size=50)
+    pub6 = rospy.Publisher('/sync_zedpcd/DepthData', PointCloud2, queue_size=50)
+
+    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, segm_sub, pcd_sub, zed_pcd_sub, pose_camhand_sub, pose_pan_sub], 50, 0.5)
+    ts.registerCallback(callback_6)
+
+    rospy.spin()
+    rospy.on_shutdown(my_shutdown_hook)
+##########################################################################
 
 def my_shutdown_hook():
     print("in my_shutdown_hook")
@@ -242,6 +286,7 @@ def initialization():
     parser.add_argument('--post',dest="post", help="Post optimization stable phantom with moving camera.", action='store_true')
     parser.add_argument('--post_depth',dest="post_depth", help="Post optimization stable phantom with moving camera, with ZED pointcloud.", action='store_true')
     parser.add_argument('--sync_sim',dest="sync_sim", help="Sync recorded images with the simulation scene.", action='store_true')
+    parser.add_argument('--sync_sim_zed',dest="sync_sim_zed", help="Sync recorded images with the simulation scene and the zed pointcloud.", action='store_true')
 
     args = parser.parse_args()
 
@@ -259,3 +304,6 @@ if __name__ == '__main__':
         listener_4()
     elif args.sync_sim:
         listener_5()
+    elif args.sync_sim_zed:
+        listener_6()
+    

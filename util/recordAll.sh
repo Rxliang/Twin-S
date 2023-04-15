@@ -20,7 +20,7 @@ do
         rosbag record -O "$OPTARG" /fwd_limage/compressed /fwd_rimage/compressed /fwd_pointcloud /fwd_pose_camhand /fwd_pose_pan
         ;;
         s)
-        rosbag record -O "$OPTARG" /sync_limage/compressed /sync_segm/compressed /sync_pcd/DepthData /sync_pose_camhand /sync_pose_pan
+        rosbag record -O "$OPTARG" /sync_limage/compressed /sync_segm/compressed /sync_pcd/DepthData /sync_pose_camhand /sync_pose_pan /sync_zedpcd/DepthData -b 4096
         echo "unkown"
         exit 1;;
     esac
