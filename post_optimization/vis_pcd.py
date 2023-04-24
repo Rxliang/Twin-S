@@ -18,7 +18,7 @@ class InteractivePCDVisualizer(object):
 
 
 class VideoPCDVisualizer(object):
-    def __init__(self, save_path, frame_rate, up, lookat, front, zoom, size=(1600, 1600)):
+    def __init__(self, save_path, frame_rate, up, lookat, front, zoom, size=(1920, 1043)):
         self.vis = o3d.visualization.Visualizer()
         self.frame_rate = float(frame_rate)
         self.save_path = save_path
@@ -37,6 +37,15 @@ class VideoPCDVisualizer(object):
         self.vis.create_window(width=self.width, height=self.height)
 
         rgb_list = []
+        
+        output_file = cv2.VideoWriter(
+            filename=self.save_path,
+            fourcc=cv2.VideoWriter_fourcc(*"mp4v"),
+            fps=self.frame_rate,
+            frameSize=(self.width, self.height),
+            isColor=True,
+        )
+
         for frame_index, frame_pcds in enumerate(frames_pcds):
             ctr = self.vis.get_view_control()
 
@@ -61,19 +70,11 @@ class VideoPCDVisualizer(object):
 
             rgb = self.vis.capture_screen_float_buffer()
             rgb = np.array(rgb) * 255
-            rgb_list.append(rgb[:, :, ::-1].astype(np.uint8))
-
+            rgb = rgb[:, :, ::-1].astype(np.uint8)
+            print(rgb.shape)
+            output_file.write(rgb)
             time.sleep(1.0 / self.frame_rate)
 
-        output_file = cv2.VideoWriter(
-            filename=self.save_path,
-            fourcc=cv2.VideoWriter_fourcc(*"mp4v"),
-            fps=self.frame_rate,
-            frameSize=(rgb_list[0].shape[1], rgb_list[0].shape[0]),
-            isColor=True,
-        )
-        for rgb in rgb_list:
-            output_file.write(rgb)
         output_file.release()
 
 
@@ -123,8 +124,8 @@ def load_depth_path(color_path, revise_keys=[('img_left', 'Depth'), ('RGB_0_Rect
 def main(args):
 
 ################################
-    dir = '/media/shc/Elements/Twin-S_data/post_sync/post_sync_eval2/'
-    T_c_p = np.load(os.path.join(dir, f'T_c_p_real.npy'))
+    dir = '/media/shc/Elements/Twin-S_data/post_sync/post_sync_z/'
+    T_c_p = np.load(os.path.join(dir, f'T_c_p_real_offset.npy'))
     zed_pcd_dir = os.path.join(dir, 'zed_depth_pcd')
     ambf_pcd_dir = os.path.join(dir, 'depth_pcd')
     T_c_p[...,:3 ,3] /= 1000
@@ -161,10 +162,10 @@ def main(args):
     if not args.video:
         InteractivePCDVisualizer()(frame_pcds[0])
     else:
-        front=[ -0.1549279145708683, -0.053733416901487446, -0.98646341097620693 ]
-        lookat=[ 0.035370932585589043, 0.011649651445448838, 0.53026432301047555 ]
-        up=[ 0.14297081678106488, -0.98922773358148397, 0.031429868949707208 ]
-        zoom=0.27999999999999986
+        front=[ -0.3509939981295529, -0.0013414501852417977, -0.93637674778287405 ]
+        lookat=[ -0.0044998621935288937, -0.029191735052132683, 0.34626969113492007 ]
+        up=[ 0.90668866085024358, 0.24932730419749116, -0.34022282061496678 ]
+        zoom=0.38000000000000006
         VideoPCDVisualizer(args.output, args.frame_rate, up, lookat, front, zoom)(frame_pcds)
 
 

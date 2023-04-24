@@ -18,7 +18,7 @@ def getNdarray(pose_path):
     # print(csv_data.head())
     num_frames = len(csv_data)
     translation_array = []
-    pivot = np.load('/home/shc/Twin-S/params/t_tip.npy')
+    pivot = np.load('/home/shc/Twin-S/params/drill_tip_0419.npy')
     for i in range(num_frames):
         # quaternion = ld.getToolPose(i, csv_data)
         seven_params = ld.getToolPose(i, pose_path)
@@ -63,13 +63,11 @@ def axisCalibration(pose_path, translation_array):
     (r, rmsd, sensi) = Rot.align_vectors(pointsInDrill, translation_array, return_sensitivity=True)
     R_o_tip = r.as_matrix()
     # R = r.as_euler('zyx', degrees=True)
-    print('ss:',sensi)
+    print('R:',R_o_tip)
 
     csv_data = pd.read_csv(pose_path)
     num_frames = len(csv_data)
     translation_array = []
-    # pivot = np.array([[12.83037253, -168.75504173, 56.3511996]]).T ##17
-    pivot = np.load('/home/shc/Twin-S/params/t_tip.npy')
     for i in range(num_frames):
         # quaternion = ld.getToolPose(i, csv_data)
         seven_params = ld.getToolPose(i, pose_path)
@@ -79,7 +77,7 @@ def axisCalibration(pose_path, translation_array):
         euler = r.as_euler('zyx', degrees=True)
         # print(R_d_tip)
     # print(R_d_tip)
-    # np.save('../params/R_d_tip_1.npy', R_d_tip)
+    np.save('../params/R_db_d.npy', R_d_tip)
 
 if __name__ == '__main__':
     pose_path = sys.argv[1]

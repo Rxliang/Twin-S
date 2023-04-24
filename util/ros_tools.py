@@ -12,10 +12,14 @@ from tf2_msgs.msg import TFMessage
 from std_msgs.msg import Header
 from sensor_msgs.msg import PointCloud2, PointField, Image
 from PIL import Image
+import matplotlib.pyplot as plt
 import sensor_msgs.point_cloud2 as pc2
 import ros_numpy
 from ctypes import * # convert float to uint32
 import open3d
+import numpy as np
+import matplotlib as mpl
+import cv2
 bridge = CvBridge()
 
 
@@ -163,57 +167,37 @@ class rostools:
             o3dpc.colors = open3d.utility.Vector3dVector(rgb_npy)
         return o3dpc
 
-    # def convertCloudFromRosToOpen3d(self, ros_cloud):
 
-    #     convert_rgbUint32_to_tuple = lambda rgb_uint32: (
-    #     (rgb_uint32 & 0x00ff0000)>>16, (rgb_uint32 & 0x0000ff00)>>8, (rgb_uint32 & 0x000000ff)
-    #     )
-    #     convert_rgbFloat_to_tuple = lambda rgb_float: convert_rgbUint32_to_tuple(
-    #         int(cast(pointer(c_float(rgb_float)), POINTER(c_uint32)).contents.value)
-    #     )
-        
-    #     # Get cloud data from ros_cloud
-    #     field_names=[field.name for field in ros_cloud.fields]
-    #     cloud_data = list(pc2.read_points(ros_cloud, skip_nans=True, field_names = field_names))
+    def project_pointcloud_to_image(pointcloud, intrinsics, extrinsics, image_shape):
+        # Convert point cloud from 3D coordinates to 2D image coordinates
+        points_2d, _ = cv2.projectPoints(pointcloud, extrinsics[:3], extrinsics[3:], intrinsics, distCoeffs=None)
+        # Scale the 2D points to the size of the image
+        points_2d = np.squeeze(points_2d)
+        points_2d[:, 0] = np.clip(points_2d[:, 0], 0, image_shape[1] - 1)
+        points_2d[:, 1] = np.clip(points_2d[:, 1], 0, image_shape[0] - 1)
+        points_2d = np.round(points_2d).astype(int)
 
-    #     # Check empty
-    #     open3d_cloud = open3d.geometry.PointCloud()
-    #     if len(cloud_data)==0:
-    #         print("Converting an empty cloud")
-    #         return None
+        # Create an empty image
+        image = np.zeros((image_shape[0], image_shape[1], 3), dtype=np.uint8)
+        dists = np.linalg.norm(pointcloud[:, :3], axis=1)  # compute distances from point to camera
 
-    #     # Set open3d_cloud
-    #     if "rgb" in field_names:
-    #         IDX_RGB_IN_FIELD=3 # x, y, z, rgb
-            
-    #         # Get xyz
-    #         scale = 1000
-    #         xyz = [(x,y,z) for x,y,z,rgb in cloud_data ] # (why cannot put this line below rgb?)
-
-    #         # Get rgb
-    #         # Check whether int or float
-    #         if type(cloud_data[0][IDX_RGB_IN_FIELD])==float: # if float (from pcl::toROSMsg)
-    #             rgb = [convert_rgbFloat_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
-    #         else:
-    #             rgb = [convert_rgbUint32_to_tuple(rgb) for x,y,z,rgb in cloud_data ]
-
-    #         # combine
-    #         open3d_cloud.points = open3d.utility.Vector3dVector(np.array(xyz))
-    #         open3d_cloud.colors = open3d.utility.Vector3dVector(np.array(rgb)/255.0)
-    #         # print(open3d_cloud.points[200000])
-    #     else:
-    #         xyz = [(x,y,z) for x,y,z in cloud_data ] # get xyz
-    #         open3d_cloud.points = open3d.utility.Vector3dVector(np.array(xyz))
-
-    #     # return
-    #     return open3d_cloud
+        # # Assign RGB colors to the projected points
+        cmap_norm = mpl.colors.Normalize(vmin=np.min(dists), vmax=np.max(dists))
+        pixs_colors = plt.get_cmap('jet')(cmap_norm(dists))[:, 0:3]*255
+        for i, point in enumerate(points_2d):
+            c_ = tuple(pixs_colors[i].astype(np.uint8))
+            c_ = np.uint8(c_)
+            x, y = point
+            r, g, b = int(c_[0]),int(c_[1]),int(c_[2])
+            image[y, x] = [r, g, b]
+        return image
 
 
     def saveImagesFromBag(self, bag, topics, img_sec_list, path):
         count = 0
         for topic, msg, t in bag.read_messages(topics):
             img_sec = msg.header.stamp.to_sec()
-            img_sec_list.append(img_sec)
+            # img_sec_list.append(img_sec)
 
             try:
                 cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
