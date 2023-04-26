@@ -12,6 +12,8 @@ from dataLoader import dataLoader
 import pandas as pd
 import seaborn as sns
 from Solver import solver
+import argparse
+import json
 sol = solver()
 ld = dataLoader()
 
@@ -90,7 +92,7 @@ def pivot_calibration(tracking_matrices, configuration=None):
 
     if configuration is not None:
         use_algebraic_one_step = False
-        method = configuration.get('method', 'aos')
+        method = configuration['method']
         if method == 'aos':
             use_algebraic_one_step = True
         elif method == 'ransac':
@@ -104,21 +106,20 @@ def pivot_calibration(tracking_matrices, configuration=None):
         return pivot_calibration_aos(tracking_matrices)
 
     if use_ransac:
-        number_iterations = configuration.get('number_iterations', 10)
-        error_threshold = configuration.get('error_threshold', 4)
-        consensus_threshold = configuration.get('consensus_threshold',
-                                                0.25)
-        early_exit = configuration.get('early_exit', False)
+        number_iterations = configuration['number_iterations']
+        error_threshold = configuration['error_threshold']
+        consensus_threshold = configuration['consensus_threshold']
+        early_exit = configuration['early_exit']
         return pivot_calibration_with_ransac(
             tracking_matrices, number_iterations, error_threshold,
             consensus_threshold, early_exit)
 
     if use_sphere_fitting:
-        init_parameters = configuration.get('init_parameters', None)
+        init_parameters = configuration['init_parameters']
         return pivot_calibration_sphere_fit(tracking_matrices, init_parameters)
 
     raise ValueError("method key set to unknown method; ",
-                     configuration.get('method', 'aos'))
+                     configuration['method'])
 
 
 def pivot_calibration_aos(tracking_matrices):
@@ -428,8 +429,55 @@ def rotationEval(tracking_matrices):
         print('fail to reject H0:Independent')
 
 if __name__ == '__main__':
+    # ld = dataLoader()
+    # pose_path = sys.argv[1]
+    # csv_data = pd.read_csv(pose_path)
+    # # print(csv_data.head())
+    # num_frames = len(csv_data)
+    # tracking_matrices = np.zeros([num_frames, 4, 4])
+    # for i in range(num_frames):
+    #     # quaternion = ld.getToolPose(i, csv_data)
+    #     quaternion = ld.getToolPose(i, pose_path)
+    #     _, T = sol.seven2trans(quaternion)
+    #     tracking_matrices[i, :, :] = T
+
+    # # rotationEval(tracking_matrices)
+
+    # t_tip, p,  residual = pivot_calibration_with_ransac(tracking_matrices,
+    #                               50,
+    #                               0.1,
+    #                               0.1,
+    #                               early_exit=False
+    #                               )
+    # print('t_tip:', t_tip.T, "\np:", p.T, '\nresidual:', residual)
+    # save_name = sys.argv[2]
+    # np.save('../params/' + str(save_name) + '.npy', t_tip)
+    # # np.save('../params/' + 't_tip_eval.npy', t_tip)
+    # # np.save('../params/' + 'p_eval.npy', p)
+
+
+    """Entry point for pivot calibration application. """
+
+    parser = argparse.ArgumentParser(description='pivotcalibration')
+
+    parser.add_argument("-i", "--input",
+                        required=True,
+                        type=str,
+                        help="A csv file containing tracking matrix files.")
+    
+    parser.add_argument("-s", "--save",
+                        required=False,
+                        type=str,
+                        help="Save file name.")
+    
+    parser.add_argument("-c", "--config",
+                        required=False,
+                        type=str,
+                        help="Configuration file containing the parameters.")
+    args = parser.parse_args()
+
     ld = dataLoader()
-    pose_path = sys.argv[1]
+    pose_path = args.input
     csv_data = pd.read_csv(pose_path)
     # print(csv_data.head())
     num_frames = len(csv_data)
@@ -439,23 +487,9 @@ if __name__ == '__main__':
         quaternion = ld.getToolPose(i, pose_path)
         _, T = sol.seven2trans(quaternion)
         tracking_matrices[i, :, :] = T
-
-    # rotationEval(tracking_matrices)
-
-    t_tip, p,  residual = pivot_calibration_with_ransac(tracking_matrices,
-                                  50,
-                                  0.1,
-                                  0.1,
-                                  early_exit=False
-                                  )
+    
+    f = open(args.config)
+    configuration = json.load(f)
+    t_tip, p, residual = pivot_calibration(tracking_matrices, configuration)
     print('t_tip:', t_tip.T, "\np:", p.T, '\nresidual:', residual)
-    save_name = sys.argv[2]
-    np.save('../params/' + str(save_name) + '.npy', t_tip)
-    # np.save('../params/' + 't_tip_eval.npy', t_tip)
-    # np.save('../params/' + 'p_eval.npy', p)
-
-    # t_tip: [[  12.83037253 -168.75504173   56.3511996 ]] 
-    # t_tip: [[  12.86018514 -171.22484561   56.06308705]] 1023
-    # t_tip: [[  14.60067685 -175.91251655   56.08049718]] 0205
-    # t_tip: [[  14.81979456 -174.32136278   57.22970104]] 0220
-
+    np.save('../params/' + str(args.save) + '.npy', t_tip)

@@ -1,0 +1,7 @@
+{
+	"method": "ransac",
+	"number_iterations" : 100,
+	"error_threshold" : 0.1, 
+	"consensus_threshold" : 0.1,
+    "early_exit" : false
+}
