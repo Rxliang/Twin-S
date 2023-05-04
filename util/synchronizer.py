@@ -190,47 +190,53 @@ def listener_4():
 ##########################################################################
 # Sync recorded images with the sim scene
 
-def callback_5(limage, segm, pcd, camhand_pose, pan_pose):
+def callback_5(rimage, limage, segm, pcd, camhand_pose, pan_pose, drill_pose):
     global count
     # Timestamp info
     img_sec = limage.header.stamp.secs
     print('img_sec:',img_sec)
 
     # Publish
+    pub0.publish(rimage)
     pub1.publish(limage)
     pub2.publish(segm)
     pub3.publish(pcd)
     pub4.publish(camhand_pose)
     pub5.publish(pan_pose)
+    pub6.publish(drill_pose)
     count += 1
 
 def listener_5():
-    global pub1, pub2, pub3, pub4, pub5
+    global pub0, pub1, pub2, pub3, pub4, pub5, pub6
     # Initialize ROS node
     rospy.init_node('image_extract_node', anonymous=True)
 
     # Subscribers
     limage_sub = message_filters.Subscriber('/pss_limage/compressed', CompressedImage)
+    rimage_sub = message_filters.Subscriber('/pss_rimage/compressed', CompressedImage)
     segm_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/ImageData/compressed', CompressedImage)
     pcd_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/DepthData', PointCloud2)
     pose_camhand_sub = message_filters.Subscriber('/pss_pose_camhand', PoseStamped)
     pose_pan_sub = message_filters.Subscriber('/pss_pose_pan', PoseStamped)
+    pose_drill_sub = message_filters.Subscriber('/pss_pose_drill', PoseStamped)
 
     # Publisher
+    pub0 = rospy.Publisher('/sync_rimage/compressed', CompressedImage, queue_size=50)
     pub1 = rospy.Publisher('/sync_limage/compressed', CompressedImage, queue_size=50)
     pub2 = rospy.Publisher('/sync_segm/compressed', CompressedImage, queue_size=50)
     pub3 = rospy.Publisher('/sync_pcd/DepthData', PointCloud2, queue_size=50)
     pub4 = rospy.Publisher('/sync_pose_camhand', PoseStamped, queue_size=50)
     pub5 = rospy.Publisher('/sync_pose_pan', PoseStamped, queue_size=50)
+    pub6 = rospy.Publisher('/sync_pose_drill', PoseStamped, queue_size=50)
 
-    ts = message_filters.ApproximateTimeSynchronizer([limage_sub, segm_sub, pcd_sub, pose_camhand_sub, pose_pan_sub], 50, 0.5)
+    ts = message_filters.ApproximateTimeSynchronizer([rimage_sub, limage_sub, segm_sub, pcd_sub, pose_camhand_sub, pose_pan_sub, pose_drill_sub], 50, 0.5)
     ts.registerCallback(callback_5)
 
     rospy.spin()
     rospy.on_shutdown(my_shutdown_hook)
 
 ##########################################################################
-# Sync recorded images with the sim scene
+# Sync recorded images with the sim data
 
 def callback_6(limage, segm, pcd, zed_pcd, camhand_pose, pan_pose):
     global count
