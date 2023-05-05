@@ -188,7 +188,7 @@ def listener_4():
     rospy.on_shutdown(my_shutdown_hook)
 
 ##########################################################################
-# Sync recorded images with the sim scene
+# Sync recorded images with the sim scene 
 
 def callback_5(rimage, limage, segm, pcd, camhand_pose, pan_pose, drill_pose):
     global count

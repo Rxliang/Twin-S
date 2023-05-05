@@ -17,4 +17,4 @@ python3 tf_to_csv.py --bag "$path".bag --tf_target_frame "$topic";
 
 # Pivot calibration
 cd ../optical_tracking;
-python3 sksurgery_pivot_calibration.py -i "$path".csv -s "$saveName" -c ransac_config.json;
+python3 sksurgery_pivot_calibration.py -i "$path".csv -s "$saveName" -c ../config/ransac_config.json;
