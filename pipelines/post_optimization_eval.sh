@@ -21,4 +21,6 @@ python3 cam_move.py --handeye ~/Twin-S/params/"$handeyeFile" --sim_sync &
 # offline sync to the simulation
 python3 offline_segm_eval.py &
 
+# python3 synchronizer.py --sync_sim_zed &
+
 wait
