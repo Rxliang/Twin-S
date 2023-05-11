@@ -194,7 +194,9 @@ def callback_5(rimage, limage, segm, pcd, camhand_pose, pan_pose, drill_pose):
     global count
     # Timestamp info
     img_sec = limage.header.stamp.secs
-    print('img_sec:',img_sec)
+
+    spinner_char = spinner[img_sec % len(spinner)]
+    print(f"              Synchronizing... {spinner_char}", end="\r")
 
     # Publish
     pub0.publish(rimage)
@@ -214,8 +216,8 @@ def listener_5():
     # Subscribers
     limage_sub = message_filters.Subscriber('/pss_limage/compressed', CompressedImage)
     rimage_sub = message_filters.Subscriber('/pss_rimage/compressed', CompressedImage)
-    segm_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/ImageData/compressed', CompressedImage)
-    pcd_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/DepthData', PointCloud2)
+    segm_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/ImageData/compressed', CompressedImage)
+    pcd_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/DepthData', PointCloud2)
     pose_camhand_sub = message_filters.Subscriber('/pss_pose_camhand', PoseStamped)
     pose_pan_sub = message_filters.Subscriber('/pss_pose_pan', PoseStamped)
     pose_drill_sub = message_filters.Subscriber('/pss_pose_drill', PoseStamped)
@@ -285,17 +287,17 @@ def my_shutdown_hook():
     print("in my_shutdown_hook")
 
 def initialization():
-    global args
+    global args, spinner
     parser = argparse.ArgumentParser(description="ROS topic synchronizer.")
     parser.add_argument('--data',dest="data", help="Data collection with drill, camera and phantom.", action='store_true')
     parser.add_argument('--eval',dest="eval", help="Evaluate the drill pose projection.", action='store_true')
     parser.add_argument('--post',dest="post", help="Post optimization stable phantom with moving camera.", action='store_true')
     parser.add_argument('--post_depth',dest="post_depth", help="Post optimization stable phantom with moving camera, with ZED pointcloud.", action='store_true')
-    parser.add_argument('--sync_sim',dest="sync_sim", help="Sync recorded images with the simulation scene.", action='store_true')
+    parser.add_argument('--sim_sync',dest="sim_sync", help="Sync recorded images with the simulation scene.", action='store_true')
     parser.add_argument('--sync_sim_zed',dest="sync_sim_zed", help="Sync recorded images with the simulation scene and the zed pointcloud.", action='store_true')
 
     args = parser.parse_args()
-
+    spinner = ['-', '\\', '|', '/']
 
 if __name__ == '__main__':
 
@@ -308,7 +310,7 @@ if __name__ == '__main__':
         listener_3()
     elif args.post_depth:
         listener_4()
-    elif args.sync_sim:
+    elif args.sim_sync:
         listener_5()
     elif args.sync_sim_zed:
         listener_6()

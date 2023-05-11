@@ -203,7 +203,7 @@ if __name__ == '__main__':
     ## oppsite motion
     # translation_array = translation_array[::-1,:]
     # dislist = getNorm(translation_array)
-    # visulizePoints(translation_array)
+    visulizePoints(translation_array)
     # visulizeFrames(F_array)
     # axisCalibration_Kabsch(pose_path, translation_array)
 
@@ -212,8 +212,8 @@ if __name__ == '__main__':
     # rot_vec = r.as_rotvec(degrees=True)
     # print('rotVec:', rot_vec)
     
-    vec = np.array([180, 1, -0.2])
-    r = Rot.from_rotvec(vec)
-    R_db_d = r.as_matrix()
-    print(R_db_d)
-    np.save('../params/R_db_d_.npy', R_db_d)
+    # vec = np.array([180, 1, -0.2])
+    # r = Rot.from_rotvec(vec)
+    # R_db_d = r.as_matrix()
+    # print(R_db_d)
+    # np.save('../params/R_db_d_.npy', R_db_d)
