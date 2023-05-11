@@ -16,13 +16,22 @@ do
     esac
 done
 
-DURATION=10;
-
 # # sync the recorded data with the simulation data
-./recordAll.sh -s "$saveFile" &
-./post_sync_data.sh -h "$handeyeFile" &
+# ./recordAll.sh -s "$saveFile" &
 echo "\n"
 read -p "**********************Open the AMBF simulation and Press enter to continue...************************" t
-rosbag play "$bagFile" &
-wait
+
+python3 ../util/data_generation.py --output_dir "$saveFile" &
+./post_sync_data.sh -h "$handeyeFile" >/dev/null & 
+
+echo "\n"
+read -p "************************************Press enter to continue...**************************************" t
+rosbag play "$bagFile" >/dev/null &
+
+wait %3
+sleep 5
+
+cleanup
+pids=$(pgrep -f "sim_sync")
+kill $pids
 echo "Finish data generating!"

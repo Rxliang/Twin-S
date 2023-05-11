@@ -15,7 +15,7 @@ do
 done
 
 # start synchronizer
-python3 ../util/synchronizer.py --sync_sim &
+python3 ../util/synchronizer.py --sim_sync &
 # start the drill move script
 python3 ~/volumetric_drilling/scripts/drill_move_imgPub.py --handeye ~/Twin-S/params/"$handeyeFile" --sim_sync &
 
