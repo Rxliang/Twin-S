@@ -57,7 +57,8 @@ def callback_2(limage, rimage, pose_drill, pose_camhand, pose_pan):
     global count
     # Timestamp info
     img_sec = limage.header.stamp.secs
-    print('img_sec:',img_sec)
+    spinner_char = spinner[img_sec % len(spinner)]
+    print(f"              Synchronizing... {spinner_char}", end="\r")
 
     # Publish
     pub1.publish(limage)

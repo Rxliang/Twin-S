@@ -78,6 +78,24 @@ def getNdarray(pose_path):
     F_array = np.asarray(F_array)
     return translation_array, F_array
 
+def getNdarrayInv(pose_path):
+    csv_data = pd.read_csv(pose_path)
+    # print(csv_data.head())
+    num_frames = len(csv_data)
+    translation_array = []
+    F_array = []
+    pivot = np.load('/home/shc/Twin-S/params/drill_pivot_0425.npy')
+    for i in range(num_frames):
+        seven_params = ld.getToolPose(i, pose_path)
+        _, F = sol.seven2trans(seven_params)
+        # F_db_o
+        F = sol.invTransformation(F)
+        F_array.append(F)
+        translation_array.append(F[:3, 3])
+    translation_array = np.vstack(translation_array)
+    F_array = np.asarray(F_array)
+    return translation_array, F_array
+
 def getNorm(translation_array):
     num_frames = len(translation_array)
     dislist = []
@@ -173,37 +191,58 @@ def axisCalibration_Kabsch(pose_path, translation_array):
         # print(R_d_tip)
     # print(R_d_tip)
     print('R:',R_d_tip)
-    np.save('../params/R_db_d.npy', R_d_tip)
+    # np.save('../params/R_db_d.npy', R_d_tip)
 
 
 def axisCalibration_RANSAC(translation_array, F_array):
     normal_db = []
     normal, plane_coeff = fit_plane(translation_array)
     normal, _, inliers = fit_plane(translation_array, plane_coeff=plane_coeff, RANSAC=True)
-    F_array = F_array[inliers]
-    for F in F_array:
-        tmp = sol.invTransformation(F)[:3, :3]@normal.T
-        normal_db.append(tmp)
-    normal_db = np.hstack(normal_db).T
-    print(normal_db.shape)
 
     drillAxis = np.array([1, 0, 0]).reshape(1,3)
-    drillAxis = np.tile(drillAxis, (normal_db.shape[0], 1))
-    (r, rmsd, sensi) = Rot.align_vectors(drillAxis, normal_db, return_sensitivity=True)
-    R_db_d = r.as_matrix()
-    # np.save('../params/R_o_d.npy', R_o_d)
-    np.save('../params/R_db_d_.npy', R_db_d)
-    print('R_db_d:\n', R_db_d)
+    R_db_d = rotation_matrix_from_vectors(drillAxis, normal)
+    print('RANSAC Plane Fitting R_db_d:\n', R_db_d)
     return R_db_d
 
+def axisCalibration_CylinderFitting(translation_array):
+    from py_cylinder_fitting import BestFitCylinder
+    from skspatial.objects import Points
+
+    best_fit_cylinder = BestFitCylinder(Points(translation_array))
+    p = best_fit_cylinder.point
+    axis = best_fit_cylinder.vector
+    radius = best_fit_cylinder.radius
+    unit_axis = axis/ np.linalg.norm(axis)
+    unit_axis = unit_axis.reshape(1,3)
+
+    drillAxis = np.array([1, 0, 0]).reshape(1,3)
+
+    R_db_d = rotation_matrix_from_vectors(drillAxis, unit_axis)
+    print('Cylinder Fitting R_db_d:\n', R_db_d)
+    return R_db_d
+
+def rotation_matrix_from_vectors(vec1, vec2):
+    """ Find the rotation matrix that aligns vec1 to vec2
+    :param vec1: A 3d "source" vector
+    :param vec2: A 3d "destination" vector
+    :return mat: A transform matrix (3x3) which when applied to vec1, aligns it with vec2.
+    """
+    a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
+    v = np.cross(a, b)
+    c = np.dot(a, b)
+    s = np.linalg.norm(v)
+    kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
+    return rotation_matrix
 
 if __name__ == '__main__':
     pose_path = sys.argv[1]
-    translation_array, F_array = getNdarray(pose_path)
+    translation_array, F_array = getNdarrayInv(pose_path)
+    # translation_array, F_array = getNdarray(pose_path)
     ## oppsite motion
     # translation_array = translation_array[::-1,:]
     # dislist = getNorm(translation_array)
-    visulizePoints(translation_array)
+    # visulizePoints(translation_array)
     # visulizeFrames(F_array)
     # axisCalibration_Kabsch(pose_path, translation_array)
 
@@ -216,4 +255,6 @@ if __name__ == '__main__':
     # r = Rot.from_rotvec(vec)
     # R_db_d = r.as_matrix()
     # print(R_db_d)
-    # np.save('../params/R_db_d_.npy', R_db_d)
+    
+    R_db_d = axisCalibration_CylinderFitting(translation_array, F_array)
+    np.save('../params/R_db_d_.npy', R_db_d)

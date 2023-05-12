@@ -55,9 +55,9 @@ def depth_gen(depth_msg):
     :return: HxW, z-values
     """
     xyz_array = ros_numpy.point_cloud2.pointcloud2_to_array(depth_msg)
-    xcol = xyz_array['x'][:, None] * scale
-    ycol = xyz_array['y'][:, None] * scale
-    zcol = xyz_array['z'][:, None] * scale
+    xcol = xyz_array['x'][:, None] / scale
+    ycol = xyz_array['y'][:, None] / scale
+    zcol = xyz_array['z'][:, None] / scale
 
     scaled_depth = np.concatenate([xcol, ycol, zcol], axis=-1)
     # halve precision to save storage
@@ -115,7 +115,7 @@ def init_hdf5(args, stereo):
     world_adf = open(args.world_adf, "r")
     world_params = yaml.safe_load(world_adf)
     world_adf.close()
-    intrinsic = np.load(args.params + 'zed_M_l.npy')
+    intrinsic = np.load(args.params + 'zed_M_l.npy') / 3
     
     T_cb_c = np.load(args.params + 'hand_eye_X_0411.npy')
     T_cb_c[:3, 3] = T_cb_c[:3, 3]/1000

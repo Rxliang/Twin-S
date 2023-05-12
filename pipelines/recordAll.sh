@@ -1,22 +1,20 @@
-# cleanup() {
-#     echo "Cleaning up..."
-#     # look for processes whose parent process ID is the same as the shell script's process ID
-#     kill -1 $$
-# }
 
-# # Set a trap to run the cleanup function when the script receives a 2 signal (Ctrl+C)
-# trap cleanup 1
 
 DURATION=60;
+# DURATION=60000;
 
-while getopts ":h:r:e:d:p:o:s:m:" opt
+while getopts ":t:h:r:e:d:p:o:s:m:" opt
 do
     case $opt in
+        t)
+        timeout $DURATION rosbag record -O "$OPTARG" /fwd_limage/compressed /fwd_rimage/compressed /fwd_pose_drill /fwd_pose_camhand /fwd_pose_pan
+        echo "Finish data recording!"
+        ;;
         h)
         rosbag record -O "$OPTARG" /atracsys/Camera_hand/measured_cp /zedm/zed_node/left/image_rect_color/compressed
         ;;
         r)
-        timeout $DURATION rosbag record -O "$OPTARG" /fwd_limage/compressed /fwd_rimage/compressed /fwd_pose_drill /fwd_pose_camhand /fwd_pose_pan #/fwd_depthData /fwd_segm/compressed /fwd_realsense_depthData
+        rosbag record -O "$OPTARG" /fwd_limage/compressed /fwd_rimage/compressed /fwd_pose_drill /fwd_pose_camhand /fwd_pose_pan 
         echo "Finish data recording!"
         ;;
         e)
