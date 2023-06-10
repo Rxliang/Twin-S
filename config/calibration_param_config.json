@@ -1,0 +1,8 @@
+{
+    "root_path": "/home/shc/Twin-S",
+	"camera_matrix": "/params/zed_M_l.npy",
+	"T_cb_c" : "/params/hand_eye_X_0411.npy",
+	"t_db_d" : "/params/drill_pivot_0505.npy", 
+	"R_db_d" : "/params/R_db_d_.npy", 
+    "T_p_pb" : "/params/phacon2pan_0411.npy"
+} 

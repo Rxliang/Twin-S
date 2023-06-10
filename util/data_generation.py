@@ -475,7 +475,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--params', default='../params/', help='The path to save the parameters.', type=str)
     parser.add_argument('--sync', action='store_true')
-    parser.add_argument('--chunk_size', type=int, default=600,
+    parser.add_argument('--chunk_size', type=int, default=300,
                         help='Write to disk every chunk size')
     parser.add_argument('--debug', action='store_true')
 

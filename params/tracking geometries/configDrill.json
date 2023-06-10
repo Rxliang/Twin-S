@@ -3,7 +3,7 @@
     "tools":
     [
         {
-            "name": "Surgical Drill",
+            "name": "Surgical drill",
             "json-file": "geometryDrill.json"
         }
     ]

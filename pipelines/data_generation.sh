@@ -29,7 +29,7 @@ read -p "************************************Press enter to continue...*********
 rosbag play "$bagFile" >/dev/null &
 
 wait %3
-sleep 5
+sleep 60
 
 cleanup
 pids=$(pgrep -f "sim_sync")

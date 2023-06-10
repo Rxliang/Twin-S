@@ -7,17 +7,17 @@ cleanup() {
 # Set a trap to run the cleanup function when the script receives a 2 signal (Ctrl+C)
 trap cleanup 2
 
-while getopts h: flag
+while getopts h:c: flag
 do
     case "${flag}" in
-        h) handeyeFile=${OPTARG};;
+        c) config=${OPTARG};;
     esac
 done
 # # Change to volumatric drilling folder
 cd ~/volumetric_drilling/scripts;
 
 # start the drill move script
-python3 drill_move_imgPub.py --handeye ~/Twin-S/params/"$handeyeFile" --sim_sync &
+python3 drill_move_imgPub.py --sim_sync --config "$config"&
 # offline sync to the simulation
 python3 offline_segm_eval.py &
 

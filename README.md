@@ -16,7 +16,7 @@ If you find our project useful, please cite
 
 ## Methodology
 
-We present a digital twin framework for skull base surgery named Twin-S. It models and tracks the critical
+We present a digital twin paradigm for skull base surgery named Twin-S. It models and tracks the critical
 components of skull-base surgery, including the surgical tool, patient anatomy,
 and surgical camera. Significantly, Twin-S updates patient anatomy to account
 for the real-world tool to tissue interactions in real-time.
@@ -59,6 +59,9 @@ make
 
 1. Record the ROS bag of pivot tool's poses.
 
+```bash
+./recordAll.sh -p <$path>
+```
 2. Load the poses from bag to csv.
 
 3. Perform pivot calibration and save the tip.

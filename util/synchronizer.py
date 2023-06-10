@@ -10,6 +10,41 @@ import argparse
 count = 0
 
 ##########################################################################
+# Data collection with drill, camera and phantom
+
+def callback_VR(pose_drill, pose_pan):
+    global count
+    # Timestamp info
+    img_sec = pose_drill.header.stamp.secs
+    spinner_char = spinner[img_sec % len(spinner)]
+    print(f"              Synchronizing... {spinner_char}", end="\r")
+
+    # Publish
+    pub3.publish(pose_drill)
+    pub5.publish(pose_pan)
+    count += 1
+
+
+def listener_VR():
+    global pub3, pub5
+    # Initialize ROS node
+    rospy.init_node('image_extract_node', anonymous=True)
+
+    # Subscribers
+    pose_drill_sub = message_filters.Subscriber('/atracsys/Surgical_drill/measured_cp', PoseStamped)
+    pose_pan_sub = message_filters.Subscriber('/atracsys/Panel/measured_cp', PoseStamped)
+
+    # Publisher
+    pub3 = rospy.Publisher('fwd_pose_drill', PoseStamped, queue_size=50)
+    pub5 = rospy.Publisher('fwd_pose_pan', PoseStamped, queue_size=50)
+
+    ts = message_filters.ApproximateTimeSynchronizer([pose_drill_sub, pose_pan_sub], 50, 0.5)
+    ts.registerCallback(callback_VR)
+
+    rospy.spin()
+    rospy.on_shutdown(my_shutdown_hook)
+
+##########################################################################
 # Evaluate the drill pose projection
 
 def callback_1(limage, rimage, pose_drill, pose_camhand):
@@ -217,8 +252,8 @@ def listener_5():
     # Subscribers
     limage_sub = message_filters.Subscriber('/pss_limage/compressed', CompressedImage)
     rimage_sub = message_filters.Subscriber('/pss_rimage/compressed', CompressedImage)
-    segm_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/ImageData/compressed', CompressedImage)
-    pcd_sub = message_filters.Subscriber('/ambf/env/cameras/segmentation_camera/DepthData', PointCloud2)
+    segm_sub = message_filters.Subscriber('/ambf/env/cameras/stereoL/ImageData/compressed', CompressedImage)
+    pcd_sub = message_filters.Subscriber('/ambf/env/cameras/main_camera/DepthData', PointCloud2)
     pose_camhand_sub = message_filters.Subscriber('/pss_pose_camhand', PoseStamped)
     pose_pan_sub = message_filters.Subscriber('/pss_pose_pan', PoseStamped)
     pose_drill_sub = message_filters.Subscriber('/pss_pose_drill', PoseStamped)
@@ -290,6 +325,7 @@ def my_shutdown_hook():
 def initialization():
     global args, spinner
     parser = argparse.ArgumentParser(description="ROS topic synchronizer.")
+    parser.add_argument('--vr',dest="vr", help="Only sync drill and phantom poses.", action='store_true')
     parser.add_argument('--data',dest="data", help="Data collection with drill, camera and phantom.", action='store_true')
     parser.add_argument('--eval',dest="eval", help="Evaluate the drill pose projection.", action='store_true')
     parser.add_argument('--post',dest="post", help="Post optimization stable phantom with moving camera.", action='store_true')
@@ -303,6 +339,8 @@ def initialization():
 if __name__ == '__main__':
 
     initialization()
+    if args.vr:
+        listener_VR()
     if args.data:
         listener_2()
     elif args.eval:
